@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: Bun Fastify JWT API
+  description: API with JWT authentication
+  version: 1.0.0
+components:
+  securitySchemes:
+    jwtCookie:
+      type: apiKey
+      in: cookie
+      name: auth-token
+      description: JWT token stored in cookie
+  schemas:
+    def-0:
+      title: createdAt
+      type: string
+      description: Account creation date.
+    def-1:
+      title: email
+      type: string
+      format: email
+      description: The email of the account.
+      example: s.staudenmayer@outlook.com
+    def-2:
+      title: id
+      type: string
+      description: The accounts id.
+    def-3:
+      title: password
+      type: string
+      description: The password of the account.
+      minLength: 10
+      example: password123#
+    def-4:
+      title: username
+      type: string
+      description: The username of the account.
+      minLength: 4
+      example: username
+    def-5:
+      title: verified
+      type: boolean
+      description: Verification state of the account.
+    def-6:
+      title: verifiedAt
+      type: string
+      description: Verification date of the account.
+    def-7:
+      title: "401"
+      type: object
+      properties:
+        message:
+          title: Unauthorized
+          type: string
+          description: The account is not authorized to access this path.
+paths:
+  /register:
+    post:
+      summary: Register new account
+      tags:
+        - Authentication
+      description: Registers a new account and sets a session cookie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  $ref: "#/components/schemas/def-4"
+                email:
+                  $ref: "#/components/schemas/def-1"
+                password:
+                  $ref: "#/components/schemas/def-3"
+        required: true
+      responses:
+        "200":
+          description: Successful registration. Returns user ID, sets session cookie.
+          content:
+            application/json:
+              schema:
+                description: Successful registration. Returns user ID, sets session cookie.
+                type: object
+                properties:
+                  id:
+                    $ref: "#/components/schemas/def-2"
+                  username:
+                    $ref: "#/components/schemas/def-4"
+                  email:
+                    $ref: "#/components/schemas/def-1"
+                  verified:
+                    $ref: "#/components/schemas/def-5"
+                  verifiedAt:
+                    $ref: "#/components/schemas/def-6"
+                  createdAt:
+                    $ref: "#/components/schemas/def-0"
+                required:
+                  - id
+                  - username
+                  - email
+        "400":
+          description: Registration failed.
+          content:
+            application/json:
+              schema:
+                description: Registration failed.
+                type: string
+                example: User already exists
+  /login:
+    post:
+      summary: Loggin to account
+      tags:
+        - Authentication
+      description: Authenticates a account and sets the jwt token if credentials are valid.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  $ref: "#/components/schemas/def-1"
+                password:
+                  $ref: "#/components/schemas/def-3"
+        required: true
+      responses:
+        "200":
+          description: Successful login. Returns a signed JWT token.
+          content:
+            application/json:
+              schema:
+                description: Successful login. Returns a signed JWT token.
+                type: object
+                properties:
+                  id:
+                    $ref: "#/components/schemas/def-2"
+                  email:
+                    $ref: "#/components/schemas/def-1"
+                  username:
+                    $ref: "#/components/schemas/def-4"
+                  verified:
+                    $ref: "#/components/schemas/def-5"
+                  verifiedAt:
+                    $ref: "#/components/schemas/def-6"
+                  createdAt:
+                    $ref: "#/components/schemas/def-0"
+        "403":
+          description: Authentication failed. The provided username or password is invalid.
+          content:
+            application/json:
+              schema:
+                description: Authentication failed. The provided username or password is
+                  invalid.
+                type: string
+                example: Invalid Credentials
+  /verify/{code}:
+    get:
+      summary: Verify account
+      tags:
+        - Authentication
+      description: Verify account through email verification code.
+      parameters:
+        - schema:
+            type: string
+            example: 21f9d7c6-3081-43f5-af61-68a5ae5f671f
+          in: path
+          name: code
+          required: true
+          description: Verification code
+      security:
+        - jwtCookie: []
+      responses:
+        "204":
+          description: Success
+          content:
+            application/json:
+              schema:
+                description: Success
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                description: Error
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                description: Error
+  /profile:
+    get:
+      summary: Get account info
+      tags:
+        - Authentication
+      description: Get account information of the currently used account.
+      security:
+        - jwtCookie: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    $ref: "#/components/schemas/def-2"
+                  username:
+                    $ref: "#/components/schemas/def-4"
+                  email:
+                    $ref: "#/components/schemas/def-1"
+                  verified:
+                    $ref: "#/components/schemas/def-5"
+                  verifiedAt:
+                    $ref: "#/components/schemas/def-6"
+                  createdAt:
+                    $ref: "#/components/schemas/def-0"
+  /logout:
+    post:
+      summary: Loggout of Account
+      tags:
+        - Authentication
+      description: Loggout of currently used Account
+      security:
+        - jwtCookie: []
+      responses:
+        "204":
+          description: Success
+          content:
+            application/json:
+              schema:
+                description: Success
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-7"
+tags:
+  - name: Authentication
+    description: Account Authentication
