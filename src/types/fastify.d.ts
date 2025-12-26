@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import type winston from 'winston';
+import type { MongoClient } from 'mongodb';
 
 export interface JwtPayload {
 	username: string;
@@ -13,10 +14,14 @@ declare module 'fastify' {
 			request: FastifyRequest,
 			reply: FastifyReply,
 		) => Promise<void>;
+		mongo: {
+			client: MongoClient;
+		};
 	}
 	interface FastifyRequest {
-		mongo: fastifyMongodb.FastifyMongoObject &
-			fastifyMongodb.FastifyMongoNestedObject;
+		mongo: {
+			client: MongoClient;
+		};
 		logger: winston.Logger;
 	}
 }

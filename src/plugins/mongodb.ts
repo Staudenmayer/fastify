@@ -1,4 +1,4 @@
-import mongodb from '@fastify/mongodb';
+import mongodb from 'mongodb';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { FastifyInstance } from 'fastify';
@@ -15,15 +15,19 @@ const threshold = dayjs()
 	.toDate();
 
 export default async function registerMongo(app: FastifyInstance) {
-	await app.register(mongodb, {
-		forceClose: true,
-		url: process.env.MONGODB_URL,
+	const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
 		appName: 'fastify',
 		auth: {
 			password: process.env.MONGO_PWD,
 			username: process.env.MONGO_USER,
 		},
+		connectTimeoutMS: 1000,
+		maxPoolSize: 25,
+		minPoolSize: 2,
 	});
+	app.mongo = {
+		client
+	};
 
 	app.addHook('onRequest', (request, _reply, done) => {
 		request.mongo = app.mongo;
