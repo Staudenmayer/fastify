@@ -1,3 +1,4 @@
+import './helpers/otel';
 import Fastify from 'fastify';
 import '@dotenvx/dotenvx/config';
 

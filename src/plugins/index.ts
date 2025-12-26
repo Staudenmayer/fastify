@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify';
-import './otel';
 import registerCookie from './cookie';
 import registerCors from './cors';
 import registerCSRF from './csrf';

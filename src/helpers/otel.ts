@@ -1,7 +1,5 @@
 import FastifyOtelInstrumentation from '@fastify/otel';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { MongoDBInstrumentation } from '@opentelemetry/instrumentation-mongodb';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
@@ -17,12 +15,16 @@ const sdk = new NodeSDK({
 	logRecordProcessors: [new SimpleLogRecordProcessor(new OTLPLogExporter())],
 	instrumentations: [
 		getNodeAutoInstrumentations({
-
-		}),
-		new HttpInstrumentation(),
-		new MongoDBInstrumentation({
-			enabled: true,
-			enhancedDatabaseReporting: true,
+			"@opentelemetry/instrumentation-mongodb": {
+				enabled: true,
+				enhancedDatabaseReporting: true,
+				responseHook: (span, responseInfo) => {
+					console.log(span, responseInfo);
+				}
+			},
+			"@opentelemetry/instrumentation-http": {
+				enabled: true,
+			}
 		}),
 		new FastifyOtelInstrumentation({
 			registerOnInitialization: true,
