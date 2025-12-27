@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { decorateAuthenticate } from './authenticate';
+import decorateAuthenticate from './authenticate';
 
 const decorators = [decorateAuthenticate];
 

@@ -3,8 +3,8 @@ export default interface User {
 	username: string;
 	email: string;
 	password: string;
-	verificationCode: string;
+	verificationCode: string | null;
 	verified: boolean;
-	verifiedAt: Date;
+	verifiedAt: Date | null;
 	createdAt: Date;
 }

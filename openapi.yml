@@ -195,6 +195,33 @@ paths:
             application/json:
               schema:
                 description: Error
+  /verify:
+    post:
+      summary: Send account verification
+      tags:
+        - Authentication
+      description: Send account verification email.
+      security:
+        - jwtCookie: []
+      responses:
+        "204":
+          description: Success
+          content:
+            application/json:
+              schema:
+                description: Success
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                description: Error
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                description: Error
   /profile:
     get:
       summary: Get account info

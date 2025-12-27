@@ -3,12 +3,11 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { FastifyInstance } from 'fastify';
 import cron from 'node-cron';
+import { minToCron } from '../helpers/cron';
+import { verificationTimeout } from '../defaults/auth';
 
 dayjs.extend(utc);
 
-const verificationTimeout: number = Number.parseInt(
-	process.env.VERIFICATION_TIMEOUT || '59',
-);
 const threshold = dayjs()
 	.utc()
 	.subtract(verificationTimeout, 'minutes')
@@ -34,7 +33,7 @@ export default async function registerMongo(app: FastifyInstance) {
 		done();
 	});
 
-	//handleAccountVerification(app);
+	handleAccountVerification(app);
 }
 
 async function handleAccountVerification(app: FastifyInstance) {
@@ -60,7 +59,7 @@ async function handleAccountVerification(app: FastifyInstance) {
 	});
 	const recordsForJob = await findResult.toArray();
 	for (const record of recordsForJob) {
-		cron.schedule(`*/${verificationTimeout} * * * *`, async () => {
+		cron.schedule(minToCron(verificationTimeout), async () => {
 			await collection.updateOne(
 				{
 					_id: record._id,
@@ -71,6 +70,8 @@ async function handleAccountVerification(app: FastifyInstance) {
 					},
 				},
 			);
+		}, {
+			timezone:  'Etc/UTC'
 		});
 	}
 }
