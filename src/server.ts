@@ -9,8 +9,6 @@ import registerDecorators from './decorators';
 import logger from './helpers/logger';
 import registerSchemas from './schemas';
 import registerPlugins from './plugins';
-import saveOpenAPI from './helpers/openapi';
-import { watchDirectory } from './helpers/watcher';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
 const tracer = trace.getTracer('startup');
@@ -25,6 +23,11 @@ const app = Fastify({
 				{
 					//allow example in a schema definition as this is allowed for openapi / swagger
 					keyword: 'example',
+					errors: false,
+				},
+				{
+					//allow example in a schema definition as this is allowed for openapi / swagger
+					keyword: 'hidden',
 					errors: false,
 				},
 			],
@@ -76,6 +79,5 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 });
 
 app.ready(() => {
-	saveOpenAPI(app, tracer, ctx);
 	setupSpan.end();
 });
