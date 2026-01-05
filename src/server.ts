@@ -1,14 +1,14 @@
 import '@dotenvx/dotenvx/config';
 import './helpers/otel';
-import { trace, context } from '@opentelemetry/api';
-import Fastify, { type FastifyInstance } from 'fastify';
 
 import path from 'node:path';
 import autoload from '@fastify/autoload';
+import { context, trace } from '@opentelemetry/api';
+import Fastify, { type FastifyInstance } from 'fastify';
 import registerDecorators from './decorators';
 import logger from './helpers/logger';
-import registerSchemas from './schemas';
 import registerPlugins from './plugins';
+import registerSchemas from './schemas';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
 const tracer = trace.getTracer('startup');
@@ -38,15 +38,15 @@ const app = Fastify({
 const regs = [
 	{
 		name: 'plugins',
-		function: registerPlugins
+		function: registerPlugins,
 	},
 	{
 		name: 'schemas',
-		function: registerSchemas
+		function: registerSchemas,
 	},
 	{
 		name: 'decorators',
-		function: registerDecorators
+		function: registerDecorators,
 	},
 	{
 		name: 'routes',
@@ -54,16 +54,15 @@ const regs = [
 			await app.register(autoload, {
 				dir: path.join(__dirname, 'routes'),
 			});
-		}
+		},
 	},
 ];
 
-for(const reg of regs) {
+for (const reg of regs) {
 	const span = tracer.startSpan(`register.${reg.name}`, {}, ctx);
 	await reg.function(app);
 	span.end();
 }
-
 
 const listenerSpan = tracer.startSpan(`register.listener`, {}, ctx);
 app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {

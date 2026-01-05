@@ -5,12 +5,10 @@
 	"private": true,
 	"scripts": {
 		"start": "bun ./src/server.ts",
-		"build": "bun build ./src/server.ts --outdir dist --target node",
 		"format": "biome format . --write",
 		"lint": "biome lint .",
 		"check": "biome check .",
-		"check:fix": "biome check . --write",
-		"doc": "bunx fastify generate-swagger ./dist/server.js"
+		"check:fix": "biome check . --write"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.10",

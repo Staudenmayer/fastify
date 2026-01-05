@@ -4,20 +4,28 @@ import utc from 'dayjs/plugin/utc';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import cron from 'node-cron';
 import { v4 as uuidv4 } from 'uuid';
+import { verificationTimeout } from '../defaults/auth';
 import { noReply } from '../defaults/mailer';
+import { minToString } from '../helpers/cron';
 import { loadHTML, sendMail } from '../helpers/mailer';
 import type LoginBody from '../types/LoginBody';
 import type User from '../types/User';
-import { minToString } from '../helpers/cron';
-import { verificationTimeout } from '../defaults/auth';
 
 dayjs.extend(utc);
 
 const saltRounds = Number.parseInt(process.env.SALT_ROUNDS || '12');
 const cookieName = process.env.COOKIE_NAME || 'auth-token';
 
-function sendVerificationEmail(email: string, verificationCode: string, host: string) {
-	const template = loadHTML('./src/html/auth.verification.html', {$1: host, $2: verificationCode, $3: minToString(verificationTimeout)});
+function sendVerificationEmail(
+	email: string,
+	verificationCode: string,
+	host: string,
+) {
+	const template = loadHTML('./src/html/auth.verification.html', {
+		$1: host,
+		$2: verificationCode,
+		$3: minToString(verificationTimeout),
+	});
 	sendMail({
 		from: noReply, // sender address
 		to: email, // list of recipients
@@ -166,7 +174,10 @@ export async function verifyAccount(
 	reply.code(204).send();
 }
 
-export async function sendVerifyAccount(request: FastifyRequest, reply: FastifyReply) {
+export async function sendVerifyAccount(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const userCol = request.mongo.client
 		.db('auth')
 		.collection<Partial<User>>('users');

@@ -15,60 +15,57 @@ type PathData = {
 				schema: {
 					properties: {
 						[key: string]: {
-							$ref?: string
-						}
-					}
-				}
-			}
-		}
-	}
+							$ref?: string;
+						};
+					};
+				};
+			};
+		};
+	};
 };
 
 type Paths = {
 	[key: string]: {
 		[key: string]: {
-			responses?: PathData,
-			requestBody?: PathData,
-			parameters?: PathData,
-		}
-	}
-}
+			responses?: PathData;
+			requestBody?: PathData;
+			parameters?: PathData;
+		};
+	};
+};
 
 function filterHidden(typePath: Paths, schemas: any) {
-	const searchProps = [
-		'responses',
-		'requestBody',
-	];
+	const searchProps = ['responses', 'requestBody'];
 
-	for(const [key, value] of Object.entries(schemas)) {
-		const typedValue = value as {hidden?: boolean};
-		if(Object.hasOwn(typedValue, 'hidden') && typedValue.hidden) {
+	for (const [key, value] of Object.entries(schemas)) {
+		const typedValue = value as { hidden?: boolean };
+		if (Object.hasOwn(typedValue, 'hidden') && typedValue.hidden) {
 			schemasToDel.add(key);
 			delete schemas[key];
 		}
 	}
 
-	for(const path of Object.values(typePath)){
-		for(const method of Object.values(path)) {
-			for(const [key, value] of Object.entries(method)) {
-				if(!searchProps.includes(key)) {
+	for (const path of Object.values(typePath)) {
+		for (const method of Object.values(path)) {
+			for (const [key, value] of Object.entries(method)) {
+				if (!searchProps.includes(key)) {
 					continue;
 				}
-				for(const data of Object.values(value)) {
-					console.log(data)
-					if(!data || !data.content) {
+				for (const data of Object.values(value)) {
+					console.log(data);
+					if (!data || !data.content) {
 						continue;
 					}
-					for(const value of Object.values(data.content)) {
-						if(!value || !value.schema || !value.schema.properties) {
+					for (const value of Object.values(data.content)) {
+						if (!value || !value.schema || !value.schema.properties) {
 							continue;
 						}
-						for(const [key, data] of Object.entries(value.schema.properties)) {
-							if(!Object.hasOwn(data, '$ref')) {
+						for (const [key, data] of Object.entries(value.schema.properties)) {
+							if (!Object.hasOwn(data, '$ref')) {
 								continue;
 							}
-							const x = data.$ref!.split('/');
-							if(schemasToDel.has(x[x.length - 1]!))
+							const x = data.$ref?.split('/');
+							if (schemasToDel.has(x[x.length - 1]!))
 								delete value.schema.properties[key];
 						}
 					}
@@ -113,7 +110,7 @@ export default async function registerSwagger(app: FastifyInstance) {
 
 			result.openapiObject.paths = filterHidden(paths, schemas);
 			return result;
-		}
+		},
 	});
 
 	await app.register(swaggerUI, {

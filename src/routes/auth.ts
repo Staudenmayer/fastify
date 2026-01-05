@@ -136,7 +136,7 @@ export default async function (app: FastifyInstance) {
 		verifyAccount,
 	);
 
-app.post(
+	app.post(
 		'/verify',
 		{
 			preHandler: [app.authenticate],

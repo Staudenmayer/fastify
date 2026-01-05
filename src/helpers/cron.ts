@@ -19,10 +19,10 @@ export function minToString(totalMinutes: number) {
 	const hours = Math.floor(totalMinutes / 60);
 	let hourString = '';
 	let minuteString = '';
-	if(hours) {
+	if (hours) {
 		hourString = `${hours}h `;
 	}
-	if(minutes) {
+	if (minutes) {
 		minuteString = `${minutes}min`;
 	}
 	return `${hourString}${minutes}`;

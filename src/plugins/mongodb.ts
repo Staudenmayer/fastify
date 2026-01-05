@@ -1,10 +1,10 @@
-import mongodb from 'mongodb';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { FastifyInstance } from 'fastify';
+import mongodb from 'mongodb';
 import cron from 'node-cron';
-import { minToCron } from '../helpers/cron';
 import { verificationTimeout } from '../defaults/auth';
+import { minToCron } from '../helpers/cron';
 
 dayjs.extend(utc);
 
@@ -25,7 +25,7 @@ export default async function registerMongo(app: FastifyInstance) {
 		minPoolSize: 2,
 	});
 	app.mongo = {
-		client
+		client,
 	};
 
 	app.addHook('onRequest', (request, _reply, done) => {
@@ -59,19 +59,23 @@ async function handleAccountVerification(app: FastifyInstance) {
 	});
 	const recordsForJob = await findResult.toArray();
 	for (const record of recordsForJob) {
-		cron.schedule(minToCron(verificationTimeout), async () => {
-			await collection.updateOne(
-				{
-					_id: record._id,
-				},
-				{
-					$set: {
-						verificationCode: null,
+		cron.schedule(
+			minToCron(verificationTimeout),
+			async () => {
+				await collection.updateOne(
+					{
+						_id: record._id,
 					},
-				},
-			);
-		}, {
-			timezone:  'Etc/UTC'
-		});
+					{
+						$set: {
+							verificationCode: null,
+						},
+					},
+				);
+			},
+			{
+				timezone: 'Etc/UTC',
+			},
+		);
 	}
 }
