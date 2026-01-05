@@ -13,7 +13,7 @@ export const email = {
 	type: 'string',
 	format: 'email',
 	description: 'The email of the account.',
-	example: 's.staudenmayer@outlook.com',
+	example: 'invalid@nowhere.com',
 };
 
 export const username = {

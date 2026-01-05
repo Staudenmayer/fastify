@@ -14,7 +14,18 @@ const sdk = new NodeSDK({
 	}),
 	logRecordProcessors: [new SimpleLogRecordProcessor(new OTLPLogExporter())],
 	instrumentations: [
-		getNodeAutoInstrumentations(),
+		getNodeAutoInstrumentations({
+			"@opentelemetry/instrumentation-mongodb": {
+				enabled: true,
+				enhancedDatabaseReporting: true,
+				responseHook: (span, responseInfo) => {
+					console.log(span, responseInfo);
+				}
+			},
+			"@opentelemetry/instrumentation-http": {
+				enabled: true,
+			}
+		}),
 		new FastifyOtelInstrumentation({
 			registerOnInitialization: true,
 			enabled: true,

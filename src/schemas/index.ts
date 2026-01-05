@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import * as account from './account';
-import * as error from './errors';
+import * as http from './http';
 
-const schemas = [account, error];
+const schemas = [account, http];
 
 export default function (app: FastifyInstance) {
 	for (const schema of schemas) {

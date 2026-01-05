@@ -4,6 +4,7 @@ import {
 	loggoutAccount,
 	loginAccount,
 	registerAccount,
+	sendVerifyAccount,
 	type VerificationCode,
 	verifyAccount,
 } from '../models/auth';
@@ -133,6 +134,35 @@ export default async function (app: FastifyInstance) {
 			},
 		},
 		verifyAccount,
+	);
+
+app.post(
+		'/verify',
+		{
+			preHandler: [app.authenticate],
+			schema: {
+				summary: 'Send account verification',
+				description: 'Send account verification email.',
+				tags: ['Authentication'],
+				security: [
+					{
+						jwtCookie: [],
+					},
+				],
+				response: {
+					204: {
+						description: 'Success',
+					},
+					400: {
+						description: 'Error',
+					},
+					404: {
+						description: 'Error',
+					},
+				},
+			},
+		},
+		sendVerifyAccount,
 	);
 
 	/**

@@ -2,6 +2,7 @@ import type { TransportOptions } from 'nodemailer';
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
 import logger from './logger';
+import fs from 'node:fs'
 
 export type MailMessage = Mail.Options & Partial<TransportOptions>;
 
@@ -13,6 +14,10 @@ export const mailer = nodemailer.createTransport({
 		user: process.env.SMTP_USER,
 		pass: process.env.SMTP_PWD,
 	},
+});
+
+mailer.on('error', (error: Error) => {
+	logger.error(`SMTP error`, error);
 });
 
 export function sendMail(message: MailMessage, maxRetries = 3) {
@@ -44,4 +49,12 @@ export function sendMail(message: MailMessage, maxRetries = 3) {
 		// Catch any unhandled errors from the background task
 		logger.error('Background email task failed:', err);
 	});
+}
+
+export function loadHTML(filename: string, params: {[key: string]: string} = {}) {
+		let template = fs.readFileSync(filename).toString();
+		for(const [key, value] of Object.entries(params)) {
+			template = template.replace(key, value);
+		}
+		return template;
 }

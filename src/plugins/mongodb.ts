@@ -1,36 +1,39 @@
-import mongodb from '@fastify/mongodb';
+import mongodb from 'mongodb';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { FastifyInstance } from 'fastify';
 import cron from 'node-cron';
+import { minToCron } from '../helpers/cron';
+import { verificationTimeout } from '../defaults/auth';
 
 dayjs.extend(utc);
 
-const verificationTimeout: number = Number.parseInt(
-	process.env.VERIFICATION_TIMEOUT || '59',
-);
 const threshold = dayjs()
 	.utc()
 	.subtract(verificationTimeout, 'minutes')
 	.toDate();
 
 export default async function registerMongo(app: FastifyInstance) {
-	await app.register(mongodb, {
-		forceClose: true,
-		url: process.env.MONGODB_URL,
+	const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
 		appName: 'fastify',
 		auth: {
-			password: process.env.MONGO_PWD,
-			username: process.env.MONGO_USER,
+			password: process.env.MONGODB_PWD,
+			username: process.env.MONGODB_USER,
 		},
+		connectTimeoutMS: 1000,
+		maxPoolSize: 25,
+		minPoolSize: 2,
 	});
+	app.mongo = {
+		client
+	};
 
 	app.addHook('onRequest', (request, _reply, done) => {
 		request.mongo = app.mongo;
 		done();
 	});
 
-	//handleAccountVerification(app);
+	handleAccountVerification(app);
 }
 
 async function handleAccountVerification(app: FastifyInstance) {
@@ -56,7 +59,7 @@ async function handleAccountVerification(app: FastifyInstance) {
 	});
 	const recordsForJob = await findResult.toArray();
 	for (const record of recordsForJob) {
-		cron.schedule(`*/${verificationTimeout} * * * *`, async () => {
+		cron.schedule(minToCron(verificationTimeout), async () => {
 			await collection.updateOne(
 				{
 					_id: record._id,
@@ -67,6 +70,8 @@ async function handleAccountVerification(app: FastifyInstance) {
 					},
 				},
 			);
+		}, {
+			timezone:  'Etc/UTC'
 		});
 	}
 }

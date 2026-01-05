@@ -5,17 +5,26 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import cron from 'node-cron';
 import { v4 as uuidv4 } from 'uuid';
 import { noReply } from '../defaults/mailer';
-import { sendMail } from '../helpers/mailer';
+import { loadHTML, sendMail } from '../helpers/mailer';
 import type LoginBody from '../types/LoginBody';
 import type User from '../types/User';
+import { minToString } from '../helpers/cron';
+import { verificationTimeout } from '../defaults/auth';
 
 dayjs.extend(utc);
 
 const saltRounds = Number.parseInt(process.env.SALT_ROUNDS || '12');
 const cookieName = process.env.COOKIE_NAME || 'auth-token';
-const verificationTimeout: number = Number.parseInt(
-	process.env.VERIFICATION_TIMEOUT || '59',
-);
+
+function sendVerificationEmail(email: string, verificationCode: string, host: string) {
+	const template = loadHTML('./src/html/auth.verification.html', {$1: host, $2: verificationCode, $3: minToString(verificationTimeout)});
+	sendMail({
+		from: noReply, // sender address
+		to: email, // list of recipients
+		subject: 'Account registration', // subject line
+		html: template,
+	});
+}
 
 export async function registerAccount(
 	request: FastifyRequest<{ Body: LoginBody }>,
@@ -37,12 +46,7 @@ export async function registerAccount(
 	const now = dayjs.utc();
 	const createdAt = now.toDate();
 
-	sendMail({
-		from: noReply, // sender address
-		to: email, // list of recipients
-		subject: 'Account registration', // subject line
-		html: `<div><a href="http://${request.host}/verify/${verificationCode}">Please Confirm Account creation!</a> This code will expire in ${verificationTimeout} min.</div>`,
-	});
+	sendVerificationEmail(email, verificationCode, request.host);
 	const result = await userCol.insertOne({
 		_id: id,
 		username,
@@ -159,6 +163,34 @@ export async function verifyAccount(
 			},
 		},
 	);
+	reply.code(204).send();
+}
+
+export async function sendVerifyAccount(request: FastifyRequest, reply: FastifyReply) {
+	const userCol = request.mongo.client
+		.db('auth')
+		.collection<Partial<User>>('users');
+	const existingUser = await userCol.findOne({ _id: request.user.id });
+	if (!existingUser) {
+		return reply.code(404).send('This user does not exist!');
+	}
+	if (existingUser.verified) {
+		return reply.code(400).send('This account is already verified.');
+	}
+	const verificationCode = uuidv4();
+	await userCol.updateOne(
+		{
+			_id: request.user.id,
+		},
+		{
+			$set: {
+				createdAt: dayjs.utc().toDate(),
+				verifiedAt: null,
+				verificationCode: verificationCode,
+			},
+		},
+	);
+	sendVerificationEmail(request.user.email, verificationCode, request.host);
 	reply.code(204).send();
 }
 
