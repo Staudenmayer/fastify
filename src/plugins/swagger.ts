@@ -64,9 +64,14 @@ function filterHidden(typePath: Paths, schemas: any) {
 							if (!Object.hasOwn(data, '$ref')) {
 								continue;
 							}
-							const x = data.$ref?.split('/');
-							if (schemasToDel.has(x[x.length - 1]!))
-								delete value.schema.properties[key];
+							const ref = data.$ref;
+							if (ref) {
+								const parts = ref.split('/');
+								const last = parts[parts.length - 1];
+								if (last && schemasToDel.has(last)) {
+									delete value.schema.properties[key];
+								}
+							}
 						}
 					}
 				}
