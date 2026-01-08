@@ -1,0 +1,3 @@
+docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -ti grafana/otel-lgtm
+https://github.com/cubeapm/docs/blob/1ea34c2dc9a22feb6d0956d956c78dea405a8258/docs/instrumentation/opentelemetry/nodeJS-fastify.md
+https://github.com/search?q=%40opentelemetry%2Fauto-instrumentations-node+%40fastify%2Fotel&type=code

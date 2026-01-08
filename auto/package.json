@@ -1,0 +1,26 @@
+{
+  "name": "auto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "OTEL_METRICS_EXPORTER=otlp OTEL_LOGS_EXPORTER=none OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4318/v1/traces OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://localhost:4318/v1/metrics OTEL_EXPORTER_OTLP_COMPRESSION=gzip OTEL_SERVICE_NAME=fastify NODE_OPTIONS=\"--require ./tracing.js\" node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/otel": "^0.16.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.67.3",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.209.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.209.0",
+    "@opentelemetry/sdk-logs": "^0.209.0",
+    "@opentelemetry/sdk-metrics": "^2.3.0",
+    "@opentelemetry/sdk-node": "^0.209.0",
+    "@opentelemetry/winston-transport": "^0.19.0",
+    "fastify": "^5.6.2",
+    "mongodb": "^7.0.0",
+    "winston": "^3.19.0"
+  }
+}
