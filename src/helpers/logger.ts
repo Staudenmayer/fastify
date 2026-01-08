@@ -7,11 +7,13 @@ const logger = winston.createLogger({
 		new winston.transports.Console({
 			//level: 'warn',
 			format: winston.format.combine(
-				winston.format.colorize(),
+				winston.format.colorize({all: true}),
 				winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
 				winston.format.printf(
-					({ timestamp, level, message }) =>
-						`${timestamp} ${level}: ${message}`,
+					(data) => {
+						const { timestamp, level, message } = data;
+						return `${timestamp} ${level}: ${message}`;
+					},
 				),
 			),
 		}),
