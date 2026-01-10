@@ -5,6 +5,7 @@ import mongodb from 'mongodb';
 import cron from 'node-cron';
 import { verificationTimeout } from '../defaults/auth';
 import { minToCron } from '../helpers/cron';
+import fp from 'fastify-plugin';
 
 dayjs.extend(utc);
 
@@ -13,7 +14,7 @@ const threshold = dayjs()
 	.subtract(verificationTimeout, 'minutes')
 	.toDate();
 
-export default async function registerMongo(app: FastifyInstance) {
+export default fp(async(app: FastifyInstance) => {
 	const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
 		appName: 'fastify',
 		auth: {
@@ -34,7 +35,9 @@ export default async function registerMongo(app: FastifyInstance) {
 	});
 
 	handleAccountVerification(app);
-}
+}, {
+	name: 'mongodb',
+});
 
 async function handleAccountVerification(app: FastifyInstance) {
 	const collection = app.mongo.client.db('auth').collection('users');

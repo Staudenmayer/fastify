@@ -10,6 +10,7 @@ import {
 } from '../models/auth';
 
 export default async function (app: FastifyInstance) {
+	console.log('auth')
 	app.post(
 		'/register',
 		{

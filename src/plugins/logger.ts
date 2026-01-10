@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 import logger from '../helpers/logger';
 
-export default async function registerLogger(app: FastifyInstance) {
+export default fp(async (app: FastifyInstance) => {
 	app.addHook('onRequest', (request, _reply, done) => {
 		request.logger = logger;
 		done();
@@ -27,4 +28,6 @@ export default async function registerLogger(app: FastifyInstance) {
 		});
 		done();
 	});
-}
+}, {
+	name: 'logger',
+});
