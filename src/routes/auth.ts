@@ -227,10 +227,5 @@ async function authRoutes (app: FastifyInstance) {
 export default async function (app: FastifyInstance) {
 	app.register(fp(authRoutes, {
 		name: 'auth-route',
-		dependencies: [
-			'authenticate-decorator',
-			'http-schema',
-			'account-schema'
-		]
 	}));
 }
