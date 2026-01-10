@@ -10,7 +10,7 @@ import {
 	verifyAccount,
 } from '../models/auth';
 
-export default fp(async(app: FastifyInstance) => {
+async function authRoutes (app: FastifyInstance) {
 	app.post(
 		'/register',
 		{
@@ -221,11 +221,16 @@ export default fp(async(app: FastifyInstance) => {
 		},
 		loggoutAccount,
 	);
-}, {
-	name: 'auth-route',
-	dependencies: [
-		'authenticate-decorator',
-		'http-schema',
-		'account-schema'
-	]
-});
+}
+
+
+export default async function (app: FastifyInstance) {
+	app.register(fp(authRoutes, {
+		name: 'auth-route',
+		dependencies: [
+			'authenticate-decorator',
+			'http-schema',
+			'account-schema'
+		]
+	}));
+}
