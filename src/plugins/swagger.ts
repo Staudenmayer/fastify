@@ -2,6 +2,7 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import scalar from '@scalar/fastify-api-reference';
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 
 const scalarPrefix = '/docs';
 const swaggerPrefix = '/swagger';
@@ -81,7 +82,7 @@ function filterHidden(typePath: Paths, schemas: any) {
 	return typePath;
 }
 
-export default async function registerSwagger(app: FastifyInstance) {
+export default fp(async(app: FastifyInstance) => {
 	await app.register(swagger, {
 		openapi: {
 			info: {
@@ -140,4 +141,6 @@ export default async function registerSwagger(app: FastifyInstance) {
 			hideClientButton: true,
 		},
 	});
-}
+}, {
+	name: 'swagger',
+});

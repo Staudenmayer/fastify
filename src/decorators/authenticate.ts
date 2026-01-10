@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 export default async function decorateAuthenticate(app: FastifyInstance) {
+	console.log('dec')
 	app.decorate(
 		'authenticate',
 		async (request: FastifyRequest, reply: FastifyReply) => {

@@ -7,7 +7,6 @@ import { context, trace } from '@opentelemetry/api';
 import Fastify, { type FastifyInstance } from 'fastify';
 import registerDecorators from './decorators';
 import logger from './helpers/logger';
-import registerPlugins from './plugins';
 import registerSchemas from './schemas';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
@@ -38,7 +37,11 @@ const app = Fastify({
 const regs = [
 	{
 		name: 'plugins',
-		function: registerPlugins,
+		function: async (app: FastifyInstance) => {
+			await app.register(autoload, {
+				dir: path.join(__dirname, 'plugins'),
+			});
+		},
 	},
 	{
 		name: 'schemas',
