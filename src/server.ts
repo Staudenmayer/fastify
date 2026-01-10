@@ -32,7 +32,11 @@ const app = Fastify({
 });
 
 const regs = [
-	{ name: 'plugins', opts: {} },
+	{ name: 'plugins', opts: {
+		options: {
+			blockedCountries: []
+		}
+	} },
 	{ name: 'schemas', opts: {} },
 	{ name: 'decorators', opts: {} },
 	{ name: 'routes', opts: {} },
