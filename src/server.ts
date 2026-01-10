@@ -1,17 +1,15 @@
 import '@dotenvx/dotenvx/config';
 import './helpers/otel';
 
-import path from 'node:path';
-import autoload from './helpers/autoload';
 import { context, trace } from '@opentelemetry/api';
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify from 'fastify';
+import autoload from './helpers/autoload';
 import logger from './helpers/logger';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
 const tracer = trace.getTracer('startup');
 const setupSpan = tracer.startSpan('app.startup', {});
 const ctx = trace.setSpan(context.active(), setupSpan);
-
 
 const app = Fastify({
 	logger: process.env.LOGGING === '1',

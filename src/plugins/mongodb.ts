@@ -1,11 +1,11 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 import mongodb from 'mongodb';
 import cron from 'node-cron';
 import { verificationTimeout } from '../defaults/auth';
 import { minToCron } from '../helpers/cron';
-import fp from 'fastify-plugin';
 
 dayjs.extend(utc);
 
@@ -14,30 +14,33 @@ const threshold = dayjs()
 	.subtract(verificationTimeout, 'minutes')
 	.toDate();
 
-export default fp(async(app: FastifyInstance) => {
-	const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
-		appName: 'fastify',
-		auth: {
-			password: process.env.MONGODB_PWD,
-			username: process.env.MONGODB_USER,
-		},
-		connectTimeoutMS: 1000,
-		maxPoolSize: 25,
-		minPoolSize: 2,
-	});
-	app.mongo = {
-		client,
-	};
+export default fp(
+	async (app: FastifyInstance) => {
+		const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
+			appName: 'fastify',
+			auth: {
+				password: process.env.MONGODB_PWD,
+				username: process.env.MONGODB_USER,
+			},
+			connectTimeoutMS: 1000,
+			maxPoolSize: 25,
+			minPoolSize: 2,
+		});
+		app.mongo = {
+			client,
+		};
 
-	app.addHook('onRequest', (request, _reply, done) => {
-		request.mongo = app.mongo;
-		done();
-	});
+		app.addHook('onRequest', (request, _reply, done) => {
+			request.mongo = app.mongo;
+			done();
+		});
 
-	handleAccountVerification(app);
-}, {
-	name: 'mongodb',
-});
+		handleAccountVerification(app);
+	},
+	{
+		name: 'mongodb',
+	},
+);
 
 async function handleAccountVerification(app: FastifyInstance) {
 	const collection = app.mongo.client.db('auth').collection('users');
