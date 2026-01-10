@@ -18,9 +18,6 @@ const sdk = new NodeSDK({
 			'@opentelemetry/instrumentation-mongodb': {
 				enabled: true,
 				enhancedDatabaseReporting: true,
-				responseHook: (span, responseInfo) => {
-					console.log(span, responseInfo);
-				},
 			},
 			'@opentelemetry/instrumentation-http': {
 				enabled: true,

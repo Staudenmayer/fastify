@@ -25,5 +25,5 @@ export function minToString(totalMinutes: number) {
 	if (minutes) {
 		minuteString = `${minutes}min`;
 	}
-	return `${hourString}${minutes}`;
+	return `${hourString}${minuteString}`;
 }

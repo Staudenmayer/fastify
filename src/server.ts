@@ -1,14 +1,10 @@
 import '@dotenvx/dotenvx/config';
 import './helpers/otel';
 
-import path from 'node:path';
-import autoload from '@fastify/autoload';
 import { context, trace } from '@opentelemetry/api';
-import Fastify, { type FastifyInstance } from 'fastify';
-import registerDecorators from './decorators';
+import Fastify from 'fastify';
+import autoload from './helpers/autoload';
 import logger from './helpers/logger';
-import registerPlugins from './plugins';
-import registerSchemas from './schemas';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
 const tracer = trace.getTracer('startup');
@@ -36,31 +32,15 @@ const app = Fastify({
 });
 
 const regs = [
-	{
-		name: 'plugins',
-		function: registerPlugins,
-	},
-	{
-		name: 'schemas',
-		function: registerSchemas,
-	},
-	{
-		name: 'decorators',
-		function: registerDecorators,
-	},
-	{
-		name: 'routes',
-		function: async (app: FastifyInstance) => {
-			await app.register(autoload, {
-				dir: path.join(__dirname, 'routes'),
-			});
-		},
-	},
+	{ name: 'plugins', opts: {} },
+	{ name: 'schemas', opts: {} },
+	{ name: 'decorators', opts: {} },
+	{ name: 'routes', opts: {} },
 ];
 
 for (const reg of regs) {
 	const span = tracer.startSpan(`register.${reg.name}`, {}, ctx);
-	await reg.function(app);
+	autoload(app, reg.name, reg.opts);
 	span.end();
 }
 

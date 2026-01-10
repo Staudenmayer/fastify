@@ -2,6 +2,7 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import scalar from '@scalar/fastify-api-reference';
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 
 const scalarPrefix = '/docs';
 const swaggerPrefix = '/swagger';
@@ -52,7 +53,6 @@ function filterHidden(typePath: Paths, schemas: any) {
 					continue;
 				}
 				for (const data of Object.values(value)) {
-					console.log(data);
 					if (!data || !data.content) {
 						continue;
 					}
@@ -81,63 +81,68 @@ function filterHidden(typePath: Paths, schemas: any) {
 	return typePath;
 }
 
-export default async function registerSwagger(app: FastifyInstance) {
-	await app.register(swagger, {
-		openapi: {
-			info: {
-				title: 'Bun Fastify JWT API',
-				description: 'API with JWT authentication',
-				version: '1.0.0',
-			},
-			tags: [
-				{
-					name: 'Authentication',
-					description: 'Account Authentication',
+export default fp(
+	async (app: FastifyInstance) => {
+		await app.register(swagger, {
+			openapi: {
+				info: {
+					title: 'Bun Fastify JWT API',
+					description: 'API with JWT authentication',
+					version: '1.0.0',
 				},
-			],
-			components: {
-				securitySchemes: {
-					jwtCookie: {
-						type: 'apiKey',
-						in: 'cookie',
-						name: cookieName,
-						description: 'JWT token stored in cookie',
+				tags: [
+					{
+						name: 'Authentication',
+						description: 'Account Authentication',
+					},
+				],
+				components: {
+					securitySchemes: {
+						jwtCookie: {
+							type: 'apiKey',
+							in: 'cookie',
+							name: cookieName,
+							description: 'JWT token stored in cookie',
+						},
 					},
 				},
 			},
-		},
-		transform: (spec: any) => {
-			const openapiObject = spec.openapiObject;
-			const schemas = openapiObject?.components?.schemas ?? {};
-			const paths = openapiObject?.paths ?? {};
+			transform: (spec: any) => {
+				const openapiObject = spec.openapiObject;
+				const schemas = openapiObject?.components?.schemas ?? {};
+				const paths = openapiObject?.paths ?? {};
 
-			const result: any = JSON.parse(JSON.stringify(spec));
+				const result: any = JSON.parse(JSON.stringify(spec));
 
-			result.openapiObject.paths = filterHidden(paths, schemas);
-			return result;
-		},
-	});
+				result.openapiObject.paths = filterHidden(paths, schemas);
+				return result;
+			},
+		});
 
-	await app.register(swaggerUI, {
-		routePrefix: swaggerPrefix,
-	});
+		await app.register(swaggerUI, {
+			routePrefix: swaggerPrefix,
+		});
 
-	app.addHook('preHandler', async (request, reply) => {
-		if (request.url.startsWith(scalarPrefix)) {
-			reply.header('Content-Security-Policy', ''); // Bypass CSP
-		}
-	});
-	await app.register(scalar, {
-		routePrefix: scalarPrefix,
-		configuration: {
-			title: 'Title',
-			pageTitle: 'Fastify API docs',
-			favicon: 'https://guides.scalar.com/fallback.favicon.png',
-			hiddenClients: true,
-			hideModels: true,
-			telemetry: false,
-			showDeveloperTools: 'localhost',
-			hideClientButton: true,
-		},
-	});
-}
+		app.addHook('preHandler', async (request, reply) => {
+			if (request.url.startsWith(scalarPrefix)) {
+				reply.header('Content-Security-Policy', ''); // Bypass CSP
+			}
+		});
+		await app.register(scalar, {
+			routePrefix: scalarPrefix,
+			configuration: {
+				title: 'Title',
+				pageTitle: 'Fastify API docs',
+				favicon: 'https://guides.scalar.com/fallback.favicon.png',
+				hiddenClients: true,
+				hideModels: true,
+				telemetry: false,
+				showDeveloperTools: 'localhost',
+				hideClientButton: true,
+			},
+		});
+	},
+	{
+		name: 'swagger',
+	},
+);

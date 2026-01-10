@@ -13,7 +13,7 @@ import type User from '../types/User';
 
 dayjs.extend(utc);
 
-const saltRounds = Number.parseInt(process.env.SALT_ROUNDS || '12');
+const saltRounds = Number.parseInt(process.env.SALT_ROUNDS || '12', 10);
 const cookieName = process.env.COOKIE_NAME || 'auth-token';
 
 function sendVerificationEmail(
