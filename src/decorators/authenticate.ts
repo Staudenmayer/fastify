@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import fp from 'fastify-plugin';
 
-export default async function decorateAuthenticate(app: FastifyInstance) {
-	console.log('dec')
+export default fp(async(app: FastifyInstance) => {
 	app.decorate(
 		'authenticate',
 		async (request: FastifyRequest, reply: FastifyReply) => {
@@ -18,4 +18,6 @@ export default async function decorateAuthenticate(app: FastifyInstance) {
 			}
 		},
 	);
-}
+}, {
+	name: 'authenticate-decorator',
+});

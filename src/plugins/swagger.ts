@@ -53,7 +53,6 @@ function filterHidden(typePath: Paths, schemas: any) {
 					continue;
 				}
 				for (const data of Object.values(value)) {
-					console.log(data);
 					if (!data || !data.content) {
 						continue;
 					}

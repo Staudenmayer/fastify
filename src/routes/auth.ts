@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 import {
 	getAccount,
 	loggoutAccount,
@@ -9,8 +10,7 @@ import {
 	verifyAccount,
 } from '../models/auth';
 
-export default async function (app: FastifyInstance) {
-	console.log('auth')
+export default fp(async(app: FastifyInstance) => {
 	app.post(
 		'/register',
 		{
@@ -221,4 +221,11 @@ export default async function (app: FastifyInstance) {
 		},
 		loggoutAccount,
 	);
-}
+}, {
+	name: 'auth-route',
+	dependencies: [
+		'authenticate-decorator',
+		'http-schema',
+		'account-schema'
+	]
+});
