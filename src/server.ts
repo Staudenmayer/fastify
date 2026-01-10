@@ -63,4 +63,7 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 
 app.ready(() => {
 	setupSpan.end();
+	const mem = process.memoryUsage();
+  console.log('Baseline RSS:', mem.rss / 1024 / 1024, 'MB');
+  console.log('Baseline Heap:', mem.heapUsed / 1024 / 1024, 'MB');
 });
