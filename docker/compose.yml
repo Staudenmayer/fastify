@@ -1,7 +1,9 @@
 version: '3'
 services:
   mongodb:
+    container_name: mongodb
     image: mongo:8.2.3-noble
+    restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=user
       - MONGO_INITDB_ROOT_PASSWORD=pass
@@ -9,5 +11,26 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+  lgtm:
+    container_name: lgtm
+    image: grafana/otel-lgtm:latest
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - "3030:3000"
+      - "4040:4040"
+      - "4317:4317"
+      - "4318:4318"
+      - "9090:9090"
+    volumes:
+      - "./lgtm-data/grafana:/data/grafana:rw"
+      - "./lgtm-data/prometheus:/data/prometheus:rw"
+      - "./lgtm-data/loki:/data/loki:rw"
+    environment:
+      - GF_PATHS_DATA=/data/grafana
+    env_file:
+      - ./otel/.env
+
 volumes:
   mongodb_data:
