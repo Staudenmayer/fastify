@@ -12,7 +12,7 @@ const setupSpan = tracer.startSpan('app.startup', {});
 const ctx = trace.setSpan(context.active(), setupSpan);
 
 const app = Fastify({
-	logger: process.env.LOGGING === '1',
+	logger: false,
 	ajv: {
 		customOptions: {
 			keywords: [
@@ -59,11 +59,11 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 	logger.info(`Started Swagger UI: ${address}/swagger`);
 	logger.info(`Started Scalar UI: ${address}/docs`);
 	listenerSpan.end();
-});
-
-app.ready(() => {
 	setupSpan.end();
-	const mem = process.memoryUsage();
-  console.log('Baseline RSS:', mem.rss / 1024 / 1024, 'MB');
-  console.log('Baseline Heap:', mem.heapUsed / 1024 / 1024, 'MB');
+	if(process.env.NODE_ENV === 'debug') {
+		const mem = process.memoryUsage();
+		const rss = (mem.rss / 1024 / 1024).toFixed(2);
+		const heap = (mem.heapUsed / 1024 / 1024).toFixed(2);
+		logger.info(`RSS: ${rss} MB, Heap: ${heap} MB`, mem)
+	}
 });
