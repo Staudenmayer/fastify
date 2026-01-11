@@ -55,15 +55,15 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 		logger.error(`Fastify error`, err);
 		process.exit(1);
 	}
-	logger.info(`Started Server: ${address}`);
-	logger.info(`Started Swagger UI: ${address}/swagger`);
-	logger.info(`Started Scalar UI: ${address}/docs`);
+	const logData = {};
+	const mem = process.memoryUsage();
+	const rss = (mem.rss / 1024 / 1024).toFixed(2);
+	const heap = (mem.heapUsed / 1024 / 1024).toFixed(2);
+	if(process.env.NODE_ENV === 'debug') {
+		Object.assign(logData, {rss, heap});
+	}
+	logger.info(`Started API and Docs: ${address}/docs`, logData);
 	listenerSpan.end();
 	setupSpan.end();
-	if(process.env.NODE_ENV === 'debug') {
-		const mem = process.memoryUsage();
-		const rss = (mem.rss / 1024 / 1024).toFixed(2);
-		const heap = (mem.heapUsed / 1024 / 1024).toFixed(2);
-		logger.info(`RSS: ${rss} MB, Heap: ${heap} MB`, mem)
-	}
+
 });

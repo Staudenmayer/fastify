@@ -1,11 +1,15 @@
 import { OpenTelemetryTransportV3 } from '@opentelemetry/winston-transport';
 import winston from 'winston';
 
+const logLevel = process.env.NODE_ENV === 'debug' ? 'debug' : 'info';
+
 const logger = winston.createLogger({
 	transports: [
-		new OpenTelemetryTransportV3(),
+		new OpenTelemetryTransportV3({
+			level: logLevel
+		}),
 		new winston.transports.Console({
-			//level: 'warn',
+			level: logLevel,
 			format: winston.format.combine(
 				winston.format.colorize({ all: true }),
 				winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
