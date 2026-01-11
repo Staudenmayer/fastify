@@ -169,7 +169,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "yellow",
+                "color": "orange",
                 "value": 0
               }
             ]
@@ -234,7 +234,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "orange",
+                "color": "red",
                 "value": 0
               }
             ]
@@ -479,14 +479,16 @@
       "maxDataPoints": "",
       "options": {
         "dedupStrategy": "none",
+        "detailsMode": "sidebar",
         "enableInfiniteScrolling": false,
         "enableLogDetails": true,
-        "prettifyLogMessage": false,
+        "prettifyLogMessage": true,
         "showCommonLabels": false,
         "showControls": false,
-        "showLabels": true,
+        "showLabels": false,
         "showTime": true,
         "sortOrder": "Descending",
+        "timestampResolution": "ms",
         "wrapLogMessage": true
       },
       "pluginVersion": "12.3.1",
@@ -517,7 +519,7 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -536,5 +538,5 @@
   "timezone": "",
   "title": "Loki / Dashboard",
   "uid": "liz0yRCZz",
-  "version": 15
+  "version": 1
 }
