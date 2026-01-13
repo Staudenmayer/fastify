@@ -32,31 +32,120 @@ export default fp(
 			},
 
 			{
-				$id: 'userid',
+				$id: 'accountId',
 				title: 'id',
 				type: 'string',
-				description: 'The accounts id.',
+				format: 'uuid',
+				description: "The account's id.",
+				example: '550e8400-e29b-41d4-a716-446655440000',
 			},
 
 			{
-				$id: 'userVerified',
+				$id: 'accountVerified',
 				title: 'verified',
 				type: 'boolean',
 				description: 'Verification state of the account.',
+				example: false,
 			},
 
 			{
-				$id: 'userVerifiedAt',
+				$id: 'accountVerifiedAt',
 				title: 'verifiedAt',
-				type: 'string',
+				anyOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }],
 				description: 'Verification date of the account.',
+				example: null,
 			},
 
 			{
-				$id: 'userCreatedAt',
+				$id: 'accountCreatedAt',
 				title: 'createdAt',
 				type: 'string',
+				format: 'date-time',
 				description: 'Account creation date.',
+				example: '2026-01-13T18:29:00.000Z',
+			},
+
+			// Base account response schema (used by all account responses)
+			{
+				$id: 'accountBase',
+				type: 'object',
+				title: 'Account Base',
+				description: 'Base account information.',
+				properties: {
+					id: { $ref: 'accountId#' },
+					username: { $ref: 'username#' },
+					email: { $ref: 'email#' },
+					verified: { $ref: 'accountVerified#' },
+					verifiedAt: { $ref: 'accountVerifiedAt#' },
+					createdAt: { $ref: 'accountCreatedAt#' },
+				},
+				required: ['id', 'username', 'email'],
+			},
+
+			// Body schemas
+			{
+				$id: 'registerBody',
+				type: 'object',
+				title: 'Register Body',
+				required: ['username', 'email', 'password'],
+				properties: {
+					username: { $ref: 'username#' },
+					email: { $ref: 'email#' },
+					password: { $ref: 'password#' },
+				},
+			},
+
+			{
+				$id: 'loginBody',
+				type: 'object',
+				title: 'Login Body',
+				required: ['email', 'password'],
+				properties: {
+					email: { $ref: 'email#' },
+					password: { $ref: 'password#' },
+				},
+			},
+
+			// Params schemas
+			{
+				$id: 'verifyParams',
+				type: 'object',
+				title: 'Verify Params',
+				required: ['code'],
+				properties: {
+					code: {
+						type: 'string',
+						format: 'uuid',
+						description: 'Verification code',
+						example: '21f9d7c6-3081-43f5-af61-68a5ae5f671f',
+					},
+				},
+			},
+
+			// Response schemas
+			{
+				$id: 'registerResponse200',
+				description:
+					'Successful registration. Returns account ID, sets session cookie.',
+				allOf: [{ $ref: 'accountBase#' }],
+			},
+
+			{
+				$id: 'loginResponse200',
+				description: 'Successful login. Returns account info.',
+				allOf: [{ $ref: 'accountBase#' }],
+			},
+
+			{
+				$id: 'profileResponse200',
+				description: 'Account profile information.',
+				allOf: [{ $ref: 'accountBase#' }],
+			},
+
+			{
+				$id: 'empty204',
+				type: 'null',
+				description: 'No content',
 			},
 		];
 

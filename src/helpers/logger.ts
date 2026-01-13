@@ -6,7 +6,7 @@ const logLevel = process.env.NODE_ENV === 'debug' ? 'debug' : 'info';
 const logger = winston.createLogger({
 	transports: [
 		new OpenTelemetryTransportV3({
-			level: logLevel
+			level: logLevel,
 		}),
 		new winston.transports.Console({
 			level: logLevel,

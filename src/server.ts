@@ -32,11 +32,14 @@ const app = Fastify({
 });
 
 const regs = [
-	{ name: 'plugins', opts: {
-		options: {
-			blockedCountries: []
-		}
-	} },
+	{
+		name: 'plugins',
+		opts: {
+			options: {
+				blockedCountries: [],
+			},
+		},
+	},
 	{ name: 'schemas', opts: {} },
 	{ name: 'decorators', opts: {} },
 	{ name: 'routes', opts: {} },
@@ -59,11 +62,10 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 	const mem = process.memoryUsage();
 	const rss = (mem.rss / 1024 / 1024).toFixed(2);
 	const heap = (mem.heapUsed / 1024 / 1024).toFixed(2);
-	if(process.env.NODE_ENV === 'debug') {
-		Object.assign(logData, {rss, heap});
+	if (process.env.NODE_ENV === 'debug') {
+		Object.assign(logData, { rss, heap });
 	}
 	logger.info(`Started API and Docs: ${address}/docs`, logData);
 	listenerSpan.end();
 	setupSpan.end();
-
 });

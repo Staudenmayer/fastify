@@ -45,7 +45,7 @@ export async function registerAccount(
 
 	const existingUser = await userCol.findOne({ email });
 	if (existingUser) {
-		return reply.code(400).send('User already exists');
+		return reply.badRequest('User already exists');
 	}
 
 	const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -114,7 +114,7 @@ export async function loginAccount(
 		!(await bcrypt.compare(password, user.password)) ||
 		user.email !== email
 	) {
-		return reply.code(401).send({ error: 'Invalid credentials' });
+		return reply.unauthorized('Invalid credentials');
 	}
 	const token = await reply.jwtSign({
 		id: user._id.toString(),
@@ -151,13 +151,13 @@ export async function verifyAccount(
 		.collection<Partial<User>>('users');
 	const existingUser = await userCol.findOne({ _id: request.user.id });
 	if (!existingUser) {
-		return reply.code(404).send('This user does not exist!');
+		return reply.notFound('This user does not exist!');
 	}
 	if (existingUser.verified) {
-		return reply.code(400).send('This account is already verified.');
+		return reply.badRequest('This account is already verified.');
 	}
 	if (existingUser.verificationCode !== request.params.code) {
-		return reply.code(400).send('This verification code is wrong!');
+		return reply.badRequest('This verification code is wrong!');
 	}
 	await userCol.updateOne(
 		{
@@ -183,10 +183,10 @@ export async function sendVerifyAccount(
 		.collection<Partial<User>>('users');
 	const existingUser = await userCol.findOne({ _id: request.user.id });
 	if (!existingUser) {
-		return reply.code(404).send('This user does not exist!');
+		return reply.notFound('This user does not exist!');
 	}
 	if (existingUser.verified) {
-		return reply.code(400).send('This account is already verified.');
+		return reply.badRequest('This account is already verified.');
 	}
 	const verificationCode = uuidv4();
 	await userCol.updateOne(
@@ -211,7 +211,7 @@ export async function getAccount(request: FastifyRequest, reply: FastifyReply) {
 		.collection<Partial<User>>('users');
 	const existingUser = await userCol.findOne({ _id: request.user.id });
 	if (!existingUser) {
-		return reply.code(404).send('This user does not exist!');
+		return reply.notFound('This user does not exist!');
 	}
 
 	//request.logger.info('Test')

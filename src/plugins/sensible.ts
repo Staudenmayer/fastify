@@ -6,8 +6,16 @@ import fp from 'fastify-plugin';
 
 export default fp(
 	async (app: FastifyInstance) => {
-		await app.register(sensible, {
-			sharedSchemaId: 'HttpError'
+		await app.register(sensible);
+		app.addSchema({
+			$id: 'HttpError',
+			type: 'object',
+			properties: {
+				statusCode: { type: 'number' },
+				error: { type: 'string' },
+				message: { type: 'string' },
+			},
+			required: ['statusCode', 'error'],
 		});
 	},
 	{
