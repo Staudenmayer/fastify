@@ -4,9 +4,10 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"start": "bun ./src/server.ts",
+		"dev": "bun --watch run ./src/server.ts",
     "build": "bun build ./src/server.ts --target=node --outdir ./dist",
-    "prod": "node ./dist/server.js",
+    "preview": "node ./dist/server.js",
+    "start": "bun run build && bun run preview",
 		"format": "biome format . --write",
 		"lint": "biome lint .",
 		"check": "biome check .",
