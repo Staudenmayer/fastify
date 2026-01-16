@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import type { TransportOptions } from 'nodemailer';
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
-import logger from './logger';
+import logger from './logger.ts';
 
 export type MailMessage = Mail.Options & Partial<TransportOptions>;
 

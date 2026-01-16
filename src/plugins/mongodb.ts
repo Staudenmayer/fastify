@@ -1,11 +1,11 @@
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc.js';
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 import mongodb from 'mongodb';
 import cron from 'node-cron';
-import { verificationTimeout } from '../defaults/auth';
-import { minToCron } from '../helpers/cron';
+import { verificationTimeout } from '../defaults/auth.ts';
+import { minToCron } from '../helpers/cron.ts';
 
 dayjs.extend(utc);
 

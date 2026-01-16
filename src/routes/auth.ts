@@ -8,7 +8,7 @@ import {
 	sendVerifyAccount,
 	type VerificationCode,
 	verifyAccount,
-} from '../models/auth';
+} from '../models/auth.ts';
 
 async function authRoutes(app: FastifyInstance) {
 	app.post(

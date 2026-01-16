@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
-import logger from '../helpers/logger';
+import logger from '../helpers/logger.ts';
 
 export default fp(
 	async (app: FastifyInstance) => {

@@ -3,8 +3,8 @@ import './helpers/otel';
 
 import { context, trace } from '@opentelemetry/api';
 import Fastify from 'fastify';
-import autoload from './helpers/autoload';
-import logger from './helpers/logger';
+import autoload from './helpers/autoload.ts';
+import logger from './helpers/logger.ts';
 
 const port = Number.parseInt(process.env.PORT || '3000', 10);
 const tracer = trace.getTracer('startup');

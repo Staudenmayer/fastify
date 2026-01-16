@@ -1,15 +1,15 @@
 import bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import cron from 'node-cron';
 import { v4 as uuidv4 } from 'uuid';
-import { verificationTimeout } from '../defaults/auth';
-import { noReply } from '../defaults/mailer';
-import { minToString } from '../helpers/cron';
-import { loadHTML, sendMail } from '../helpers/mailer';
-import type LoginBody from '../types/LoginBody';
-import type User from '../types/User';
+import { verificationTimeout } from '../defaults/auth.ts';
+import { noReply } from '../defaults/mailer.ts';
+import { minToString } from '../helpers/cron.ts';
+import { loadHTML, sendMail } from '../helpers/mailer.ts';
+import type LoginBody from '../types/LoginBody.ts';
+import type User from '../types/User.ts';
 
 dayjs.extend(utc);
 
