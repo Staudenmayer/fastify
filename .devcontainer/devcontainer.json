@@ -3,6 +3,9 @@
 {
   "name": "Bun",
   "dockerFile": "Dockerfile",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
   // Configure tool-specific properties.
   "customizations": {
     // Configure properties specific to VS Code.
