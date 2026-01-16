@@ -23,6 +23,6 @@
   },
   "runArgs": ["--add-host=host.docker.internal:host-gateway"],
   "postCreateCommand": {
-    "compose": "docker compose -f ./docker/compose.yml up -d"
+    "compose": "docker compose -f ./docker/compose.yml --env-file .env up -d"
   }
 }
