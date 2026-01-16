@@ -20,5 +20,9 @@
         "mongodb.mongodb-vscode"
       ]
     }
+  },
+  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+  "postStartCommand": {
+    "compose": "docker compose -f ./docker/compose.yml up -d"
   }
 }
