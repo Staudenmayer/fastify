@@ -24,6 +24,10 @@ declare module 'fastify' {
 		};
 		logger: winston.Logger;
 	}
+	interface FastifyReply {
+		logData: object;
+		addLogData: (data: object) => void;
+	}
 }
 
 declare module '@fastify/jwt' {
