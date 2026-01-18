@@ -18,27 +18,12 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import Logger from '@/helper/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { useCookies } from '@vueuse/integrations/useCookies';
+import { usePostHog } from './posthog';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'web-otel',
   [ATTR_SERVICE_VERSION]: '1.0.0',
 });
-
-const loggerProvider = new  LoggerProvider({
-  resource,
-  processors: [new SimpleLogRecordProcessor(new OTLPLogExporter())]
-})
-
-const meterProvider = new MeterProvider({
-  resource,
-  readers: [
-    new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter(),
-      exportIntervalMillis: 1000
-    }),
-  ],
-});
-metrics.setGlobalMeterProvider(meterProvider);
 
 const traceProvider = new WebTracerProvider({
   resource,
@@ -59,7 +44,45 @@ registerInstrumentations({
 
 export function useOTEL() {
   const cookies = useCookies(['uuid']);
-  let uuid = '';
+  const { posthog } = usePostHog();
+  const session = posthog.get_session_id()
+  let user = '';
+  const userCookie = cookies.get('user');
+
+  if(!user && !userCookie) {
+    user = uuidv4();
+    cookies.set('user', user);
+  }
+  else if(userCookie) {
+    user = userCookie;
+  }
+
+  //posthog.sessionManager?.resetSessionId();
+  posthog.identify(user);
+
+  const resource = resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: `session-${session}`,
+    [ATTR_SERVICE_VERSION]: '1.0.0',
+    ['service.seesion']: session,
+    ['service.user']: user,
+  });
+
+  const loggerProvider = new  LoggerProvider({
+    resource,
+    processors: [new SimpleLogRecordProcessor(new OTLPLogExporter())]
+  })
+
+  const meterProvider = new MeterProvider({
+    resource,
+    readers: [
+      new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter(),
+        exportIntervalMillis: 1000
+      }),
+    ],
+  });
+
+  metrics.setGlobalMeterProvider(meterProvider);
 
   function stopMetrics() {
     console.log('STOPPING METRICS');
@@ -69,18 +92,9 @@ export function useOTEL() {
   // Auto-cleanup when component unmounts
   onUnmounted(stopMetrics);
 
-    const uuidCookie = cookies.get('uuid');
-    if(!uuid && !uuidCookie) {
-      uuid = uuidv4();
-      cookies.set('uuid', uuid);
-    }
-    else if(uuidCookie) {
-      uuid = uuidCookie;
-    }
-
   return {
-    meter: meterProvider.getMeter(`web-meter-${uuid}`, '1.0.0'),
-    logger: new Logger(loggerProvider, uuid),
-    uuid,
+    meter: meterProvider.getMeter(`web-meter`, '1.0.0'),
+    logger: new Logger(loggerProvider),
+    user,
   }
 }
