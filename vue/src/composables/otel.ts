@@ -15,6 +15,7 @@ import {
 import { metrics } from '@opentelemetry/api';
 import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import Logger from '@/helper/logger';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'web-otel',
@@ -67,6 +68,6 @@ export function useOTEL() {
 
   return {
     meter: meterProvider,
-    logger: loggerProvider.getLogger('logs'),
+    logger: new Logger(loggerProvider),
   }
 }

@@ -79,28 +79,18 @@
 
   function add() {
     count.value += 1;
-    logger.emit({
-      severityText: 'INFO',
-      severityNumber: 9,
-      body: 'User clicked button',
-      attributes: {
-        buttonId: 'save',
-        count: count.value
-      },
+    logger.info('User clicked button', {
+      buttonId: 'save',
+      count: count.value,
     });
     upDownCounter.add(1);
   }
 
   function sub() {
     count.value -= 1;
-    logger.emit({
-      severityText: 'INFO',
-      severityNumber: 9,
-      body: 'User clicked button',
-      attributes: {
-        buttonId: 'save',
-        count: count.value
-      },
+    logger.info('User clicked button', {
+      buttonId: 'save',
+      count: count.value
     });
     upDownCounter.add(-1);
   }
