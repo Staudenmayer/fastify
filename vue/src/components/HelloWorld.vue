@@ -14,7 +14,8 @@
 
       <v-card class="mb-8 py-4 d-flex ga-5 justify-center" color="surface-variant" rounded="lg" variant="tonal">
         <v-btn @click="getData" color="primary">Test</v-btn>
-          <v-btn @click="count++" color="primary">Count {{ count }}</v-btn>
+          <v-btn @click="add" color="primary">Add Count {{ count }}</v-btn>
+          <v-btn @click="sub" color="primary">Subtract Count {{ count }}</v-btn>
           <v-btn href="https://eu.posthog.com" target="_blank" color="primary">Posthog</v-btn>
       </v-card>
 
@@ -68,7 +69,22 @@
 
 <script setup lang="ts">
   import axios from 'axios';
+  import { useOTEL } from '@/composables/otel.ts';
+  const { meter } = useOTEL();
   const count = ref(0);
+  const upDownCounter =   meter.getMeter('counter', '1.0.0').createUpDownCounter('test_up_down_counter', {
+    description: 'Example of a UpDownCounter',
+  });
+
+  function add() {
+    count.value += 1;
+    upDownCounter.add(1);
+  }
+
+  function sub() {
+    count.value -= 1;
+    upDownCounter.add(-1);
+  }
   const links = [
     {
       href: 'https://vuetifyjs.com/',

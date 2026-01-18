@@ -5,5 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-  import '@/otel.ts';
+  //instanciate this here for otel to load properly
+  import '@/composables/otel.ts';
 </script>
