@@ -70,19 +70,38 @@
 <script setup lang="ts">
   import axios from 'axios';
   import { useOTEL } from '@/composables/otel.ts';
-  const { meter } = useOTEL();
+  const { meter, logger } = useOTEL();
   const count = ref(0);
-  const upDownCounter =   meter.getMeter('counter', '1.0.0').createUpDownCounter('test_up_down_counter', {
+
+  const upDownCounter =  meter.getMeter('counter', '1.0.0').createUpDownCounter('test_up_down_counter', {
     description: 'Example of a UpDownCounter',
   });
 
   function add() {
     count.value += 1;
+    logger.emit({
+      severityText: 'INFO',
+      severityNumber: 9,
+      body: 'User clicked button',
+      attributes: {
+        buttonId: 'save',
+        count: count.value
+      },
+    });
     upDownCounter.add(1);
   }
 
   function sub() {
     count.value -= 1;
+    logger.emit({
+      severityText: 'INFO',
+      severityNumber: 9,
+      body: 'User clicked button',
+      attributes: {
+        buttonId: 'save',
+        count: count.value
+      },
+    });
     upDownCounter.add(-1);
   }
   const links = [

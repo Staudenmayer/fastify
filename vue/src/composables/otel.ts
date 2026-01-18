@@ -13,11 +13,18 @@ import {
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions';
 import { metrics } from '@opentelemetry/api';
+import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'web-otel',
   [ATTR_SERVICE_VERSION]: '1.0.0',
 });
+
+const loggerProvider = new  LoggerProvider({
+  resource,
+  processors: [new SimpleLogRecordProcessor(new OTLPLogExporter())]
+})
 
 const meterProvider = new MeterProvider({
   resource,
@@ -57,7 +64,9 @@ export function useOTEL() {
   // Auto-cleanup when component unmounts
   onUnmounted(stopMetrics);
 
+
   return {
     meter: meterProvider,
+    logger: loggerProvider.getLogger('logs'),
   }
 }
