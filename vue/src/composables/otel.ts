@@ -16,6 +16,8 @@ import { metrics } from '@opentelemetry/api';
 import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import Logger from '@/helper/logger';
+import { v4 as uuidv4 } from 'uuid';
+import { useCookies } from '@vueuse/integrations/useCookies';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'web-otel',
@@ -56,6 +58,8 @@ registerInstrumentations({
 });
 
 export function useOTEL() {
+  const cookies = useCookies(['uuid']);
+  let uuid = '';
 
   function stopMetrics() {
     console.log('STOPPING METRICS');
@@ -65,9 +69,18 @@ export function useOTEL() {
   // Auto-cleanup when component unmounts
   onUnmounted(stopMetrics);
 
+    const uuidCookie = cookies.get('uuid');
+    if(!uuid && !uuidCookie) {
+      uuid = uuidv4();
+      cookies.set('uuid', uuid);
+    }
+    else if(uuidCookie) {
+      uuid = uuidCookie;
+    }
 
   return {
-    meter: meterProvider,
-    logger: new Logger(loggerProvider),
+    meter: meterProvider.getMeter(`web-meter-${uuid}`, '1.0.0'),
+    logger: new Logger(loggerProvider, uuid),
+    uuid,
   }
 }

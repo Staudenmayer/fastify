@@ -5,8 +5,12 @@ export default class Logger {
   otelLogger: {
     emit(logRecord: LogRecord): void
   };
-  constructor(otelLogger: LoggerProvider) {
-    this.otelLogger = otelLogger.getLogger('logger');
+
+  uuid: string;
+
+  constructor(otelLogger: LoggerProvider, uuid: string) {
+    this.uuid = uuid;
+    this.otelLogger = otelLogger.getLogger(`web-logger-${uuid}`, '1.0.0');
   }
 
   private log(severityNumber: SeverityNumber, message: LogBody, attributes: LogAttributes) {
@@ -47,7 +51,7 @@ export default class Logger {
       severityNumber: severityNumber,
       severityText: severityText,
       body: message,
-      attributes: attributes,
+      attributes: Object.assign({ uuid: this.uuid }, attributes),
 
     })
   }

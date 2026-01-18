@@ -73,7 +73,7 @@
   const { meter, logger } = useOTEL();
   const count = ref(0);
 
-  const upDownCounter =  meter.getMeter('counter', '1.0.0').createUpDownCounter('test_up_down_counter', {
+  const upDownCounter =  meter.createUpDownCounter('test_up_down_counter', {
     description: 'Example of a UpDownCounter',
   });
 
