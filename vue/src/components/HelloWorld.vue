@@ -14,7 +14,8 @@
 
       <v-card class="mb-8 py-4 d-flex ga-5 justify-center" color="surface-variant" rounded="lg" variant="tonal">
         <v-btn @click="getData" color="primary">Test</v-btn>
-        <v-btn @click="getData2" color="primary">Test2</v-btn>
+          <v-btn @click="count++" color="primary">Count {{ count }}</v-btn>
+          <v-btn href="https://eu.posthog.com" target="_blank" color="primary">Posthog</v-btn>
       </v-card>
 
       <v-row>
@@ -67,6 +68,7 @@
 
 <script setup lang="ts">
   import axios from 'axios';
+  const count = ref(0);
   const links = [
     {
       href: 'https://vuetifyjs.com/',
@@ -95,11 +97,6 @@
   ]
 
   async function getData() {
-    console.log('data');
-    await getData2();
-  }
-
-  async function getData2() {
     let data = await axios.get('https://google.com');
     console.log(data.data);
   }
