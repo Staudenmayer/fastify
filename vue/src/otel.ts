@@ -1,4 +1,4 @@
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchSpanProcessor  } from '@opentelemetry/sdk-trace-base';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -11,14 +11,13 @@ import {
 } from '@opentelemetry/semantic-conventions';
 
 const resource = resourceFromAttributes({
-  [ATTR_SERVICE_NAME]: 'jira-dash',
+  [ATTR_SERVICE_NAME]: 'web-otel',
   [ATTR_SERVICE_VERSION]: '1.0.0',
 });
 
 const provider = new WebTracerProvider({
   resource,
-  spanProcessors: [new SimpleSpanProcessor(new OTLPTraceExporter({
-  }))],
+  spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter({}))],
 });
 
 provider.register({
