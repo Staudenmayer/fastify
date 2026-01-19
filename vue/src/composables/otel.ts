@@ -19,6 +19,7 @@ import Logger from '@/helper/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import { usePostHog } from './posthog';
+import CustomTraceExporter from '@/helper/spanprocessor';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'web-otel',
@@ -27,7 +28,10 @@ const resource = resourceFromAttributes({
 
 const traceProvider = new WebTracerProvider({
   resource,
-  spanProcessors: [new BatchSpanProcessor(new OTLPTraceExporter({}))],
+  spanProcessors: [
+    new BatchSpanProcessor(new OTLPTraceExporter({})),
+    new BatchSpanProcessor(new CustomTraceExporter({})),
+  ],
 });
 
 traceProvider.register({
