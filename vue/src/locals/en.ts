@@ -1,3 +1,3 @@
 export default {
-  save: 'Save',
-}
+	save: 'Save',
+};

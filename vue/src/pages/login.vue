@@ -1,11 +1,11 @@
 <template>
-  <LoginForm />
+	<LoginForm />
 </template>
 
 <script lang="ts" setup>
-  definePage({
-    meta: {
-      layout: 'blank',
-    },
-  })
+definePage({
+	meta: {
+		layout: 'blank',
+	},
+});
 </script>
