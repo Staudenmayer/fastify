@@ -17,7 +17,13 @@
         "editorconfig.editorconfig",
         "ms-vscode.vscode-typescript-next",
         "pkief.material-icon-theme",
-        "mongodb.mongodb-vscode"
+        "mongodb.mongodb-vscode",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "wallabyjs.console-ninja",
+        "wallabyjs.quokka-vscode",
+        "vue.volar"
       ]
     }
   },
