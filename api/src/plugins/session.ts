@@ -5,7 +5,7 @@ import fp from 'fastify-plugin';
 export default fp(
 	async (app: FastifyInstance) => {
 		await app.register(session, {
-			secret: process.env.SESSION_SECRET!,
+			secret: process.env.SESSION_SECRET ?? '',
 		});
 	},
 	{

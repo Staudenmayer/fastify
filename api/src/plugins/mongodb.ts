@@ -16,7 +16,7 @@ const threshold = dayjs()
 
 export default fp(
 	async (app: FastifyInstance) => {
-		const client = new mongodb.MongoClient(process.env.MONGODB_URL!, {
+		const client = new mongodb.MongoClient(process.env.MONGODB_URL ?? '', {
 			appName: 'fastify',
 			auth: {
 				password: process.env.MONGODB_PWD,

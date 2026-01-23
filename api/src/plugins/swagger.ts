@@ -35,6 +35,7 @@ type Paths = {
 	};
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: Allow any here as there are not any viable types available from the package
 function filterHidden(typePath: Paths, schemas: any) {
 	const searchProps = ['responses', 'requestBody'];
 
@@ -107,11 +108,13 @@ export default fp(
 					},
 				},
 			},
+			// biome-ignore lint/suspicious/noExplicitAny: Allow any here as there are not any viable types available from the package
 			transform: (spec: any) => {
 				const openapiObject = spec.openapiObject;
 				const schemas = openapiObject?.components?.schemas ?? {};
 				const paths = openapiObject?.paths ?? {};
 
+				// biome-ignore lint/suspicious/noExplicitAny: Allow any here as there are not any viable types available from the package
 				const result: any = JSON.parse(JSON.stringify(spec));
 
 				result.openapiObject.paths = filterHidden(paths, schemas);
