@@ -28,7 +28,6 @@
     "@vueuse/integrations": "^14.1.0",
     "axios": "^1.13.2",
     "highcharts-vue": "^2.0.1",
-    "i": "^0.3.7",
     "interactjs": "^1.10.27",
     "pinia": "^3.0.3",
     "posthog-js": "^1.328.0",
