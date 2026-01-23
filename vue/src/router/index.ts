@@ -4,9 +4,9 @@
  * Automatic routes for `./src/pages/*.vue`
  */
 
+import { setupLayouts } from 'virtual:generated-layouts'
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
-import { setupLayouts } from 'virtual:generated-layouts'
 import { routes } from 'vue-router/auto-routes'
 import { usePostHog } from '@/composables/posthog'
 import { setupAuthMiddleware } from '@/middleware/global'
@@ -16,7 +16,7 @@ const router = createRouter({
   routes: setupLayouts(routes),
 })
 
-setupAuthMiddleware(router);
+setupAuthMiddleware(router)
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {
@@ -37,6 +37,6 @@ router.isReady().then(() => {
   localStorage.removeItem('vuetify:dynamic-reload')
 })
 
-const { posthog } = usePostHog()
+usePostHog()
 
 export default router

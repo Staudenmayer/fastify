@@ -1,59 +1,58 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
-import interact from 'interactjs'
+  import interact from 'interactjs'
+  import { onMounted, ref } from 'vue'
 
-const GRID_SIZE = 120 // px per grid cell
+  const GRID_SIZE = 120 // px per grid cell
 
-const cards = ref([])
-const showGrid = ref(false)
+  const cards = ref([])
+  const showGrid = ref(false)
 
-function addCard () {
-  cards.value.push({
-    id: Date.now(),
-    x: 0,
-    y: 0
-  })
+  function addCard () {
+    cards.value.push({
+      id: Date.now(),
+      x: 0,
+      y: 0,
+    })
+  }
 
-}
+  function initDrag () {
+    interact('.draggable-card').unset()
 
-function initDrag () {
-  interact('.draggable-card').unset()
+    interact('.draggable-card').draggable({
+      modifiers: [
+        interact.modifiers.snap({
+          targets: [
+            interact.snappers.grid({ x: GRID_SIZE, y: GRID_SIZE }),
+          ],
+          range: Infinity,
+          // Snap relative to card center
+          relativePoints: [{ x: 0.5, y: 0.5 }],
+        }),
+        interact.modifiers.restrictRect({
+          restriction: 'parent',
+          endOnly: true,
+        }),
+      ],
+      listeners: {
+        start () {
+          showGrid.value = true
+        },
+        move (event) {
+          const target = event.target
+          const id = Number(target.dataset.id)
+          const card = cards.value.find(c => c.id === id)
 
-  interact('.draggable-card').draggable({
-    modifiers: [
-      interact.modifiers.snap({
-        targets: [
-          interact.snappers.grid({ x: GRID_SIZE, y: GRID_SIZE })
-        ],
-        range: Infinity,
-        // Snap relative to card center
-        relativePoints: [{ x: 0.5, y: 0.5 }]
-      }),
-      interact.modifiers.restrictRect({
-        restriction: 'parent',
-        endOnly: true
-      })
-    ],
-    listeners: {
-      start () {
-        showGrid.value = true
+          card.x += event.dx
+          card.y += event.dy
+        },
+        end () {
+          showGrid.value = false
+        },
       },
-      move (event) {
-        const target = event.target
-        const id = Number(target.dataset.id)
-        const card = cards.value.find(c => c.id === id)
+    })
+  }
 
-        card.x += event.dx
-        card.y += event.dy
-      },
-      end () {
-        showGrid.value = false
-      }
-    }
-  })
-}
-
-onMounted(initDrag)
+  onMounted(initDrag)
 </script>
 
 <template>
@@ -68,9 +67,8 @@ onMounted(initDrag)
 
     <div
       class="grid-board show-grid"
-
     >
-    <!--:class="{ 'show-grid': showGrid }"-->
+      <!--:class="{ 'show-grid': showGrid }"-->
       <div
         v-for="card in cards"
         :key="card.id"
@@ -81,9 +79,9 @@ onMounted(initDrag)
         }"
       >
         <v-card
-          :width="110"
-          :height="110"
           elevation="4"
+          :height="110"
+          :width="110"
         >
           <v-card-title>Card</v-card-title>
           <v-card-text>#{{ card.id }}</v-card-text>

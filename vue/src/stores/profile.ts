@@ -2,9 +2,9 @@
 import { defineStore } from 'pinia'
 
 export type ProfileData = {
-  name: string;
-  email: string;
-  loggedIn: boolean;
+  name: string
+  email: string
+  loggedIn: boolean
 }
 
 export const useProfileData = defineStore('profile', {
@@ -14,12 +14,12 @@ export const useProfileData = defineStore('profile', {
     loggedIn: false,
   }),
   actions: {
-    login(profileData: ProfileData) {
+    login (profileData: ProfileData) {
       this.name = profileData.name
       this.email = profileData.email
       this.loggedIn = true
     },
-    logout() {
+    logout () {
       this.name = ''
       this.email = ''
       this.loggedIn = false

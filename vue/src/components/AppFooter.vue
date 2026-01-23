@@ -1,9 +1,9 @@
 <template>
   <v-footer
     app
+    elevation="15"
     height="40"
     style="z-index: 1000; left: 0; width: 100%; position: fixed;"
-    elevation="15"
   >
     <a
       v-for="item in items"

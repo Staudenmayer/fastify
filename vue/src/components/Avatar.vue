@@ -1,25 +1,25 @@
 <template>
   <v-menu
     v-model="menu"
+    class="mr-5"
     location="bottom end"
     offset="8"
     transition="scale-transition"
-    class="mr-5"
   >
     <!-- Avatar button -->
     <template #activator="{ props }">
       <v-btn
         v-bind="props"
-        icon
         class="avatar-btn"
+        icon
         variant="text"
       >
-        <v-avatar size="32" image="https://avatars.githubusercontent.com/u/35968425?v=4&size=48" icon="mdi-account"></v-avatar>
+        <v-avatar icon="mdi-account" image="https://avatars.githubusercontent.com/u/35968425?v=4&size=48" size="32" />
       </v-btn>
     </template>
 
     <!-- Dropdown menu -->
-    <v-card min-width="220" elevation="8" rounded="lg">
+    <v-card elevation="8" min-width="220" rounded="lg">
       <v-list density="comfortable" nav>
         <!-- User info (optional but 🔥) -->
         <v-list-item>
@@ -39,9 +39,9 @@
 
         <v-divider class="my-1" />
 
-        <v-list-item v-for="item in items" @click="item.onClick">
+        <v-list-item v-for="item in items" :key="item.key" @click="item.onClick">
           <template #prepend>
-            <v-icon size="18" :color="item.color">
+            <v-icon :color="item.color" size="18">
               {{ item.icon }}
             </v-icon>
           </template>
@@ -55,36 +55,38 @@
 </template>
 
 <script setup lang="ts">
-const router = useRouter()
-const menu = ref(false)
+  const router = useRouter()
+  const menu = ref(false)
 
-const items = ref([
-  {
-    onClick: handleProfile,
-    icon: 'mdi-account',
-    text: 'Profile',
-    color: 'default'
-  },
-  {
-    onClick: logout,
-    icon: 'mdi-logout',
-    text: 'Logout',
-    color: 'error'
+  const items = ref([
+    {
+      key: 'profile',
+      onClick: handleProfile,
+      icon: 'mdi-account',
+      text: 'Profile',
+      color: 'default',
+    },
+    {
+      key: 'logout',
+      onClick: logout,
+      icon: 'mdi-logout',
+      text: 'Logout',
+      color: 'error',
+    },
+  ])
+
+  function getTextColor (color: string) {
+    return `text-${color}`
   }
-])
 
-function getTextColor(color: string) {
-  return `text-${color}`;
-}
+  function logout () {
+    menu.value = false
+    localStorage.removeItem('token')
+    router.push('/login')
+  }
 
-function logout() {
-  menu.value = false
-  localStorage.removeItem('token')
-  router.push('/login')
-}
-
-function handleProfile() {
-  menu.value = false
-  router.push('/profile')
-}
+  function handleProfile () {
+    menu.value = false
+    router.push('/profile')
+  }
 </script>

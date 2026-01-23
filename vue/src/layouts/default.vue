@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-btn :icon="current.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'" variant="text" size="x-large" @click="toggleTheme"></v-btn>
+    <v-btn :icon="current.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'" size="x-large" variant="text" @click="toggleTheme" />
     <v-app-bar
       app
       density="compact"
@@ -18,25 +18,24 @@
         <v-icon>mdi-bell</v-icon>
       </v-btn>
 
-
       <Avatar />
-      <div class="pr-7"></div>
+      <div class="pr-7" />
     </v-app-bar>
 
     <!-- Navigation Drawer -->
     <v-navigation-drawer
-      app
       v-model="drawer"
+      app
       width="256"
     >
       <v-list density="compact" nav>
         <v-list-item
           v-for="item in navItems"
           :key="item.title"
-          :to="item.to"
-          :title="item.title"
-          :prepend-icon="item.icon"
           color="primary"
+          :prepend-icon="item.icon"
+          :title="item.title"
+          :to="item.to"
           @click="drawer = false"
         />
       </v-list>
@@ -55,20 +54,19 @@
 </template>
 
 <script setup lang="ts">
-import { useTheme } from 'vuetify';
+  import { useTheme } from 'vuetify'
 
-const drawer = ref(false);
-const { toggle, current } = useTheme();
+  const drawer = ref(false)
+  const { toggle, current } = useTheme()
 
-function toggleTheme() {
-	toggle();
-}
+  function toggleTheme () {
+    toggle()
+  }
 
-
-const navItems = [
-  { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/' },
-  { title: 'Users', icon: 'mdi-account-group', to: '/users' },
-]
+  const navItems = [
+    { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/' },
+    { title: 'Users', icon: 'mdi-account-group', to: '/users' },
+  ]
 </script>
 
 <style scoped>

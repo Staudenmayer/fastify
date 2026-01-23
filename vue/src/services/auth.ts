@@ -1,4 +1,4 @@
 // src/services/auth.js
-export function isAuthenticated() {
+export function isAuthenticated () {
   return !!localStorage.getItem('token')
 }

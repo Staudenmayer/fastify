@@ -4,16 +4,16 @@
  * Automatically included in `./src/main.ts`
  */
 
-// Plugins
-import vuetify from './vuetify'
-import pinia from '../stores'
-import router from '../router'
-import vueI18n from './vue-i18n'
-import iconify from './iconify'
-import highcharts from './highcharts'
-
 // Types
 import type { App } from 'vue'
+import router from '../router'
+import pinia from '../stores'
+import highcharts from './highcharts'
+import iconify from './iconify'
+import vueI18n from './vue-i18n'
+
+// Plugins
+import vuetify from './vuetify'
 
 export function registerPlugins (app: App) {
   app
@@ -22,5 +22,5 @@ export function registerPlugins (app: App) {
     .use(pinia)
     .use(vueI18n)
     .use(iconify)
-		.use(highcharts)
+    .use(highcharts)
 }

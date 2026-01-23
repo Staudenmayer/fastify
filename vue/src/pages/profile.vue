@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-10">
     <v-row justify="center">
-      <v-col cols="12" sm="10" md="6">
+      <v-col cols="12" md="6" sm="10">
         <v-card elevation="8" rounded="lg">
           <v-card-title class="text-h6">
             Edit Profile
@@ -15,26 +15,26 @@
               <div class="d-flex flex-column align-center mb-6">
                 <div
                   class="avatar-upload"
-                  @click="triggerFileInput"
                   role="button"
                   tabindex="0"
+                  @click="triggerFileInput"
                   @keydown.enter="triggerFileInput"
                   @keydown.space="triggerFileInput"
                 >
-                  <v-avatar size="96" class="mb-3" :image="avatarPreview" icon="mdi-account"></v-avatar>
+                  <v-avatar class="mb-3" icon="mdi-account" :image="avatarPreview" size="96" />
 
                   <div class="avatar-overlay">
-                    <v-icon size="24" color="white">mdi-camera-plus</v-icon>
+                    <v-icon color="white" size="24">mdi-camera-plus</v-icon>
                     <div class="upload-text">Upload photo</div>
                   </div>
 
                   <input
                     ref="fileInput"
-                    type="file"
                     accept="image/*"
-                    @change="onAvatarChange"
                     class="d-none"
-                  />
+                    type="file"
+                    @change="onAvatarChange"
+                  >
                 </div>
               </div>
 
@@ -43,8 +43,8 @@
                 v-model="form.username"
                 label="Username"
                 prepend-inner-icon="mdi-account"
-                variant="outlined"
                 required
+                variant="outlined"
               />
 
               <!-- Email -->
@@ -52,9 +52,9 @@
                 v-model="form.email"
                 label="Email"
                 prepend-inner-icon="mdi-email"
-                variant="outlined"
-                type="email"
                 required
+                type="email"
+                variant="outlined"
               />
 
               <!-- Password section -->
@@ -67,24 +67,24 @@
               <v-text-field
                 v-model="form.currentPassword"
                 label="Current password"
-                type="password"
                 prepend-inner-icon="mdi-lock"
+                type="password"
                 variant="outlined"
               />
 
               <v-text-field
                 v-model="form.newPassword"
                 label="New password"
-                type="password"
                 prepend-inner-icon="mdi-lock-plus"
+                type="password"
                 variant="outlined"
               />
 
               <v-text-field
                 v-model="form.confirmPassword"
                 label="Confirm new password"
-                type="password"
                 prepend-inner-icon="mdi-lock-check"
+                type="password"
                 variant="outlined"
               />
 
@@ -93,8 +93,8 @@
                 <v-spacer />
                 <v-btn
                   color="primary"
-                  type="submit"
                   :loading="loading"
+                  type="submit"
                   @click="$router.back()"
                 >
                   Save Changes
@@ -109,56 +109,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+  import { onUnmounted, ref } from 'vue'
 
-const loading = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
+  const loading = ref(false)
+  const fileInput = ref<HTMLInputElement | null>(null)
 
-const form = ref({
-  username: 'JohnDoe',
-  email: 'john@example.com',
-  avatar: undefined as File | undefined,
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
-})
+  const form = ref({
+    username: 'JohnDoe',
+    email: 'john@example.com',
+    avatar: undefined as File | undefined,
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
 
-const avatarPreview = ref(
-  'https://avatars.githubusercontent.com/u/35968425?v=4&size=96'
-)
+  const avatarPreview = ref(
+    'https://avatars.githubusercontent.com/u/35968425?v=4&size=96',
+  )
 
-function triggerFileInput() {
-  fileInput.value?.click()
-}
-
-function onAvatarChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const files = target?.files
-  if (!files || files.length === 0) return
-
-  const file = files[0]
-  if(file) {
-    form.value.avatar = file
-    avatarPreview.value = URL.createObjectURL(file)
+  function triggerFileInput () {
+    fileInput.value?.click()
   }
 
-  // Reset input value to allow same file re-upload
-  target.value = ''
-}
+  function onAvatarChange (event: Event) {
+    const target = event.target as HTMLInputElement
+    const files = target?.files
+    if (!files || files.length === 0) return
 
-async function saveProfile() {
-  // Basic password validation
-  if (
-    form.value.newPassword &&
-    form.value.newPassword !== form.value.confirmPassword
-  ) {
-    alert('Passwords do not match')
-    return
+    const file = files[0]
+    if (file) {
+      form.value.avatar = file
+      avatarPreview.value = URL.createObjectURL(file)
+    }
+
+    // Reset input value to allow same file re-upload
+    target.value = ''
   }
 
-  loading.value = true
+  async function saveProfile () {
+    // Basic password validation
+    if (
+      form.value.newPassword
+      && form.value.newPassword !== form.value.confirmPassword
+    ) {
+      alert('Passwords do not match')
+      return
+    }
 
-  try {
+    loading.value = true
+
+    try {
     /**
      * Example:
      * const payload = new FormData()
@@ -169,17 +169,17 @@ async function saveProfile() {
      *
      * await api.put('/me', payload)
      */
-  } finally {
-    loading.value = false
+    } finally {
+      loading.value = false
+    }
   }
-}
 
-// Cleanup object URLs
-onUnmounted(() => {
-  if (avatarPreview.value && !avatarPreview.value.startsWith('https')) {
-    URL.revokeObjectURL(avatarPreview.value)
-  }
-})
+  // Cleanup object URLs
+  onUnmounted(() => {
+    if (avatarPreview.value && !avatarPreview.value.startsWith('https')) {
+      URL.revokeObjectURL(avatarPreview.value)
+    }
+  })
 </script>
 
 <style scoped>

@@ -5,7 +5,7 @@
 <script lang="ts" setup>
   definePage({
     meta: {
-      layout: 'blank'
-    }
+      layout: 'blank',
+    },
   })
 </script>
