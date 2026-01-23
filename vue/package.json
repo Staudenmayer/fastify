@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fontsource/roboto": "5.2.7",
+    "@iconify/vue": "^5.0.0",
     "@mdi/font": "7.4.47",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-web": "^0.55.0",
@@ -26,12 +27,15 @@
     "@vueuse/core": "^14.1.0",
     "@vueuse/integrations": "^14.1.0",
     "axios": "^1.13.2",
+    "highcharts-vue": "^2.0.1",
     "i": "^0.3.7",
+    "interactjs": "^1.10.27",
     "pinia": "^3.0.3",
     "posthog-js": "^1.328.0",
     "universal-cookie": "7",
     "uuid": "^13.0.0",
     "vue": "^3.5.21",
+    "vue-i18n": "^11.2.8",
     "vue-router": "^4.5.1",
     "vuetify": "^3.10.1"
   },
