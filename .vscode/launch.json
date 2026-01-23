@@ -9,7 +9,7 @@
             "internalConsoleOptions": "neverOpen",
             "request": "launch",
             "name": "Debug Server",
-            "program": "src/server.ts",
+            "program": "api/src/server.ts",
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "watchMode": false
