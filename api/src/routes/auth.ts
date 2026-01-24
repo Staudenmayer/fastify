@@ -5,9 +5,6 @@ import {
 	loggoutAccount,
 	loginAccount,
 	registerAccount,
-	sendVerifyAccount,
-	type VerificationCode,
-	verifyAccount,
 } from '../models/auth.ts';
 
 async function authRoutes(app: FastifyInstance) {
@@ -44,45 +41,6 @@ async function authRoutes(app: FastifyInstance) {
 			},
 		},
 		loginAccount,
-	);
-
-	app.get<{ Params: VerificationCode }>(
-		'/verify/:code',
-		{
-			preHandler: [app.authenticate],
-			schema: {
-				summary: 'Verify account',
-				description: 'Verify account through email verification code.',
-				tags: ['Authentication'],
-				security: [{ jwtCookie: [] }],
-				params: { $ref: 'verifyParams#' },
-				response: {
-					204: { $ref: 'empty204#' },
-					400: { $ref: 'HttpError#' },
-					404: { $ref: 'HttpError#' },
-				},
-			},
-		},
-		verifyAccount,
-	);
-
-	app.post(
-		'/verify',
-		{
-			preHandler: [app.authenticate],
-			schema: {
-				summary: 'Send account verification',
-				description: 'Send account verification email.',
-				tags: ['Authentication'],
-				security: [{ jwtCookie: [] }],
-				response: {
-					204: { $ref: 'empty204#' },
-					400: { $ref: 'HttpError#' },
-					404: { $ref: 'HttpError#' },
-				},
-			},
-		},
-		sendVerifyAccount,
 	);
 
 	app.get(

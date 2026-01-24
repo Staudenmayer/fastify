@@ -41,22 +41,6 @@ export default fp(
 			},
 
 			{
-				$id: 'accountVerified',
-				title: 'verified',
-				type: 'boolean',
-				description: 'Verification state of the account.',
-				example: false,
-			},
-
-			{
-				$id: 'accountVerifiedAt',
-				title: 'verifiedAt',
-				anyOf: [{ type: 'string', format: 'date-time' }, { type: 'null' }],
-				description: 'Verification date of the account.',
-				example: null,
-			},
-
-			{
 				$id: 'accountCreatedAt',
 				title: 'createdAt',
 				type: 'string',
@@ -75,8 +59,6 @@ export default fp(
 					id: { $ref: 'accountId#' },
 					username: { $ref: 'username#' },
 					email: { $ref: 'email#' },
-					verified: { $ref: 'accountVerified#' },
-					verifiedAt: { $ref: 'accountVerifiedAt#' },
 					createdAt: { $ref: 'accountCreatedAt#' },
 				},
 				required: ['id', 'username', 'email'],
@@ -103,22 +85,6 @@ export default fp(
 				properties: {
 					email: { $ref: 'email#' },
 					password: { $ref: 'password#' },
-				},
-			},
-
-			// Params schemas
-			{
-				$id: 'verifyParams',
-				type: 'object',
-				title: 'Verify Params',
-				required: ['code'],
-				properties: {
-					code: {
-						type: 'string',
-						format: 'uuid',
-						description: 'Verification code',
-						example: '21f9d7c6-3081-43f5-af61-68a5ae5f671f',
-					},
 				},
 			},
 

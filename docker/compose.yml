@@ -38,6 +38,25 @@ services:
     environment:
       - GF_PATHS_DATA=/data/grafana
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5552:5552"
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_stream advertised_host localhost"
+    restart: unless-stopped
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 volumes:
   mongodb_data:
   valkey_data:
+  rabbitmq_data:
