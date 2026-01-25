@@ -8,9 +8,7 @@ export default fp(
 			async (request: FastifyRequest, reply: FastifyReply) => {
 				const token = request.cookies[process.env.COOKIE_NAME || 'auth-token'];
 				if (!token) {
-					return reply.status(401).send({
-						message: 'Authentication required!',
-					});
+					return reply.unauthorized('Authentication required!');
 				}
 				try {
 					request.user = app.jwt.verify(token);

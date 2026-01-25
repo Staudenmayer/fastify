@@ -46,7 +46,7 @@ async function authRoutes(app: FastifyInstance) {
 	app.get(
 		'/profile',
 		{
-			preHandler: [app.authenticate],
+			preValidation: [app.authenticate],
 			schema: {
 				summary: 'Get account info',
 				description: 'Get account information of the currently used account.',
@@ -65,7 +65,7 @@ async function authRoutes(app: FastifyInstance) {
 	app.post(
 		'/logout',
 		{
-			preHandler: [app.authenticate],
+			preValidation: [app.authenticate],
 			schema: {
 				summary: 'Logout of Account',
 				description: 'Logout of currently used Account',
