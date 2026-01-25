@@ -79,8 +79,6 @@ const passwordRules = [
 
 async function handleLogin() {
 	localStorage.setItem('token', 'test');
-	router.push('/');
-	return;
 	if (form.email && form.password) {
 		loading.value = true;
 
@@ -94,17 +92,13 @@ async function handleLogin() {
 
 			if (response.ok) {
 				const data = await response.json();
-				// Handle successful login (store token, redirect, etc.)
-				console.log('Login successful:', data);
 				localStorage.setItem('token', data.token);
-				// router.push('/dashboard')
+				router.push('/');
 			} else {
 				throw new Error('Login failed');
 			}
 		} catch (error) {
 			console.error('Login error:', error);
-			// Show error message to user
-			alert('Login failed. Please check your credentials.');
 		} finally {
 			loading.value = false;
 		}
