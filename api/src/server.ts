@@ -69,3 +69,5 @@ app.listen({ port: port, host: '0.0.0.0' }, (err, address) => {
 	listenerSpan.end();
 	setupSpan.end();
 });
+
+export default app;

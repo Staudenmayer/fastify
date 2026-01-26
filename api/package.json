@@ -19,7 +19,9 @@
 		"@types/bun": "latest",
 		"@types/geoip-lite": "^1.4.4",
 		"@types/node": "^25.0.3",
-		"fastify-cli": "^7.4.1"
+		"fastify-cli": "^7.4.1",
+		"vitest": "^4.0.18",
+		"mongodb-memory-server": "^11.0.1"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
