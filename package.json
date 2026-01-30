@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev": "bun run --workspaces dev",
+    "build": "bun run --workspaces build",
     "dev:vue": "bun run --cwd=vue dev",
     "dev:api": "bun run --cwd=api dev",
     "format:api": "biome format . --write",
