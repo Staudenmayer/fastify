@@ -1,0 +1,20 @@
+{
+  "name": "fastify",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "vue",
+    "api"
+  ],
+  "scripts": {
+    "dev": "bun run --workspaces dev",
+    "dev:vue": "bun run --cwd=vue dev",
+    "dev:api": "bun run --cwd=api dev",
+    "format:api": "biome format . --write",
+		"lint:api": "biome lint .",
+		"check:api": "biome check . --write"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^2.3.13"
+  }
+}
