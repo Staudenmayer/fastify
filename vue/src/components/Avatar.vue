@@ -40,8 +40,8 @@
 						</v-avatar>
 					</template>
 
-					<v-list-item-title class="font-weight-medium"> John Doe </v-list-item-title>
-					<v-list-item-subtitle class="text-caption"> john@example.com </v-list-item-subtitle>
+					<v-list-item-title class="font-weight-medium"> {{ name }} </v-list-item-title>
+					<v-list-item-subtitle class="text-caption"> {{ email }} </v-list-item-subtitle>
 				</v-list-item>
 
 				<v-divider class="my-1" />
@@ -69,8 +69,10 @@
 </template>
 
 <script setup lang="ts">
+import { useAccountData } from '@/stores/account';
 const router = useRouter();
 const menu = ref(false);
+const { id, email, name, logout: accountLogout } = useAccountData();
 
 const items = ref([
 	{
@@ -93,9 +95,9 @@ function getTextColor(color: string) {
 	return `text-${color}`;
 }
 
-function logout() {
+async function logout() {
 	menu.value = false;
-	localStorage.removeItem('token');
+	await accountLogout();
 	router.push('/login');
 }
 
