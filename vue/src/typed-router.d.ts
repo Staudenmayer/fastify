@@ -19,11 +19,11 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/account': RouteRecordInfo<'/account', '/account', Record<never, never>, Record<never, never>>,
+    '/account-list': RouteRecordInfo<'/account-list', '/account-list', Record<never, never>, Record<never, never>>,
     '/bento': RouteRecordInfo<'/bento', '/bento', Record<never, never>, Record<never, never>>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
-    '/profile': RouteRecordInfo<'/profile', '/profile', Record<never, never>, Record<never, never>>,
     '/register': RouteRecordInfo<'/register', '/register', Record<never, never>, Record<never, never>>,
-    '/users': RouteRecordInfo<'/users', '/users', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -41,6 +41,14 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
+    'src/pages/account.vue': {
+      routes: '/account'
+      views: never
+    }
+    'src/pages/account-list.vue': {
+      routes: '/account-list'
+      views: never
+    }
     'src/pages/bento.vue': {
       routes: '/bento'
       views: never
@@ -49,16 +57,8 @@ declare module 'vue-router/auto-routes' {
       routes: '/login'
       views: never
     }
-    'src/pages/profile.vue': {
-      routes: '/profile'
-      views: never
-    }
     'src/pages/register.vue': {
       routes: '/register'
-      views: never
-    }
-    'src/pages/users.vue': {
-      routes: '/users'
       views: never
     }
   }

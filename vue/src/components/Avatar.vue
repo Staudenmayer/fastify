@@ -77,7 +77,7 @@ const { id, email, name, logout: accountLogout } = useAccountData();
 const items = ref([
 	{
 		key: 'profile',
-		onClick: handleProfile,
+		onClick: handleAccount,
 		icon: 'mdi-account',
 		text: 'Profile',
 		color: 'default',
@@ -101,8 +101,8 @@ async function logout() {
 	router.push('/login');
 }
 
-function handleProfile() {
+function handleAccount() {
 	menu.value = false;
-	router.push('/profile');
+	router.push('/account');
 }
 </script>

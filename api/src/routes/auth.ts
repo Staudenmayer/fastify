@@ -44,7 +44,7 @@ async function authRoutes(app: FastifyInstance) {
 	);
 
 	app.get(
-		'/profile',
+		'/me',
 		{
 			preValidation: [app.authenticate],
 			schema: {
@@ -53,7 +53,7 @@ async function authRoutes(app: FastifyInstance) {
 				tags: ['Authentication'],
 				security: [{ jwtCookie: [] }],
 				response: {
-					200: { $ref: 'profileResponse200#' },
+					200: { $ref: 'accountResponse200#' },
 					401: { $ref: 'HttpError' },
 					404: { $ref: 'HttpError' },
 				},

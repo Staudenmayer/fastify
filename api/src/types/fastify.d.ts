@@ -3,7 +3,7 @@ import type winston from 'winston';
 import type { MongoClient } from 'mongodb';
 
 export interface JwtPayload {
-	username: string;
+	name: string;
 	email: string;
 	id: string;
 }

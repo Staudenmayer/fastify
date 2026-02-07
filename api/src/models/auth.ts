@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import type LoginBody from '../types/LoginBody.ts';
-import type User from '../types/User.ts';
+import type Account from '../types/Account.ts';
 
 dayjs.extend(utc);
 
@@ -15,14 +15,14 @@ export async function registerAccount(
 	request: FastifyRequest<{ Body: LoginBody }>,
 	reply: FastifyReply,
 ) {
-	const { username, email, password } = request.body;
+	const { name, email, password } = request.body;
 	const userCol = request.mongo.client
 		.db('auth')
-		.collection<Partial<User>>('users');
+		.collection<Partial<Account>>('users');
 
 	const existingUser = await userCol.findOne({ email });
 	if (existingUser) {
-		return reply.badRequest('User already exists');
+		return reply.badRequest('Account already exists');
 	}
 
 	const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -32,14 +32,14 @@ export async function registerAccount(
 
 	const result = await userCol.insertOne({
 		_id: id,
-		username,
+		name,
 		email,
 		password: hashedPassword,
 		createdAt: createdAt,
 	});
 
 	const userId = result.insertedId.toString();
-	const token = await reply.jwtSign({ id: userId, username, email });
+	const token = await reply.jwtSign({ id: userId, name, email });
 
 	return reply
 		.setCookie(cookieName, token, {
@@ -51,7 +51,7 @@ export async function registerAccount(
 		})
 		.send({
 			id: userId,
-			username,
+			name,
 			email,
 			createdAt,
 		});
@@ -63,7 +63,7 @@ export async function loginAccount(
 ) {
 	const { email, password } = request.body;
 
-	const users = request.mongo.client.db('auth').collection<User>('users');
+	const users = request.mongo.client.db('auth').collection<Account>('users');
 	const user = await users.findOne({ email });
 
 	if (
@@ -76,7 +76,7 @@ export async function loginAccount(
 	const token = await reply.jwtSign({
 		id: user._id.toString(),
 		email: email,
-		username: user.username,
+		name: user.name,
 	});
 
 	return reply
@@ -89,7 +89,7 @@ export async function loginAccount(
 		})
 		.send({
 			id: user._id.toString(),
-			username: user.username,
+			name: user.name,
 			email,
 			createdAt: user.createdAt,
 		});
@@ -98,16 +98,16 @@ export async function loginAccount(
 export async function getAccount(request: FastifyRequest, reply: FastifyReply) {
 	const userCol = request.mongo.client
 		.db('auth')
-		.collection<Partial<User>>('users');
+		.collection<Partial<Account>>('users');
 	const existingUser = await userCol.findOne({ _id: request.user.id });
 	if (!existingUser) {
-		return reply.notFound('This user does not exist!');
+		return reply.notFound('This account does not exist!');
 	}
 
 	//request.logger.info('Test')
 	return reply.send({
 		id: request.user.id,
-		username: request.user.username,
+		name: request.user.name,
 		email: request.user.email,
 		createdAt: existingUser.createdAt,
 	});

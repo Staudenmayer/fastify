@@ -1,6 +1,6 @@
-export default interface User {
+export default interface Account {
 	_id: string;
-	username: string;
+	name: string;
 	email: string;
 	password: string;
 	createdAt: Date;

@@ -11,7 +11,7 @@
 					rounded="lg"
 				>
 					<v-card-title class="text-h6">
-						{{ $props.variant === 'profile' ? 'Edit Profile' : 'Create Account' }}
+						{{ $props.variant === 'account' ? 'Edit Profile' : 'Create Account' }}
 					</v-card-title>
 
 					<v-divider />
@@ -54,10 +54,10 @@
 								</div>
 							</div>
 
-							<!-- Username -->
+							<!-- Name -->
 							<v-text-field
-								v-model="form.username"
-								label="Username"
+								v-model="form.name"
+								label="Name"
 								prepend-inner-icon="mdi-account"
 								required
 								variant="outlined"
@@ -74,7 +74,7 @@
 							/>
 
 							<!-- Password section -->
-							<template v-if="$props.variant === 'profile'">
+							<template v-if="$props.variant === 'account'">
 								<v-divider class="my-6" />
 
 								<div class="text-subtitle-2 mb-3">Change Password</div>
@@ -113,7 +113,7 @@
 									type="submit"
 									@click="$router.back()"
 								>
-									{{ $props.variant === 'profile' ? 'Save Changes' : 'Create' }}
+									{{ $props.variant === 'account' ? 'Save Changes' : 'Create' }}
 								</v-btn>
 							</v-card-actions>
 						</v-form>
@@ -131,14 +131,14 @@ import PasswordField from './PasswordField.vue';
 const { id, email, name } = useAccountData();
 
 defineProps<{
-	variant: 'profile' | 'register';
+	variant: 'account' | 'register';
 }>();
 
 const loading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const form = ref({
-	username: name,
+	name: name,
 	email: email,
 	avatar: undefined as File | undefined,
 	currentPassword: '',
@@ -180,7 +180,7 @@ async function saveProfile() {
 		/**
 		 * Example:
 		 * const payload = new FormData()
-		 * payload.append('username', form.value.username)
+		 * payload.append('name', form.value.name)
 		 * payload.append('email', form.value.email)
 		 * if (form.value.avatar) payload.append('avatar', form.value.avatar)
 		 * if (form.value.newPassword) payload.append('password', form.value.newPassword)

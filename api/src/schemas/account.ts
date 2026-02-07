@@ -23,12 +23,12 @@ export default fp(
 			},
 
 			{
-				$id: 'username',
-				title: 'username',
+				$id: 'name',
+				title: 'name',
 				type: 'string',
-				description: 'The username of the account.',
+				description: 'The name of the account.',
 				minLength: 4,
-				example: 'username',
+				example: 'name',
 			},
 
 			{
@@ -57,11 +57,11 @@ export default fp(
 				description: 'Base account information.',
 				properties: {
 					id: { $ref: 'accountId#' },
-					username: { $ref: 'username#' },
+					name: { $ref: 'name#' },
 					email: { $ref: 'email#' },
 					createdAt: { $ref: 'accountCreatedAt#' },
 				},
-				required: ['id', 'username', 'email'],
+				required: ['id', 'name', 'email'],
 			},
 
 			// Body schemas
@@ -69,9 +69,9 @@ export default fp(
 				$id: 'registerBody',
 				type: 'object',
 				title: 'Register Body',
-				required: ['username', 'email', 'password'],
+				required: ['name', 'email', 'password'],
 				properties: {
-					username: { $ref: 'username#' },
+					name: { $ref: 'name#' },
 					email: { $ref: 'email#' },
 					password: { $ref: 'password#' },
 				},
@@ -103,8 +103,8 @@ export default fp(
 			},
 
 			{
-				$id: 'profileResponse200',
-				description: 'Account profile information.',
+				$id: 'accountResponse200',
+				description: 'Account information.',
 				allOf: [{ $ref: 'accountBase#' }],
 			},
 

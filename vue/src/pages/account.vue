@@ -1,5 +1,5 @@
 <template>
-	<Profile variant="profile" />
+	<Profile variant="account" />
 </template>
 
 <script setup lang="ts">

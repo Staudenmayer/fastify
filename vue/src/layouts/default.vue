@@ -74,7 +74,7 @@ function toggleTheme() {
 
 const navItems = [
 	{ title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/' },
-	{ title: 'Users', icon: 'mdi-account-group', to: '/users' },
+	{ title: 'Accounts', icon: 'mdi-account-group', to: '/account-list' },
 ];
 </script>
 

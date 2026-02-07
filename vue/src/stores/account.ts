@@ -3,20 +3,22 @@ import axios from 'axios';
 
 export type LoginData = {
 	email: string;
+	name: string;
 	password: string;
 }
 
 export type AccountData = {
+	id: string;
+	name: string;
+	email: string;
+	createdAt: Date;
+};
+
+export type AccountState = {
+	id: string;
 	name: string;
 	email: string;
 	loggedIn: boolean;
-};
-
-export type ProfileData = {
-	id: string;
-	username: string;
-	email: string;
-	createdAt: Date;
 };
 
 export const useAccountData = defineStore('account', {
@@ -27,12 +29,12 @@ export const useAccountData = defineStore('account', {
 		loggedIn: false,
 	}),
 	actions: {
-		async login(profileData: LoginData) {
+		async login(accountData: LoginData) {
 			let success = false;
 			try{
-				const accountResponse = await axios.post<ProfileData>('/api/login', profileData);
+				const accountResponse = await axios.post<AccountData>('/api/login', accountData);
 				this.id = accountResponse.data.id;
-				this.name = accountResponse.data.username;
+				this.name = accountResponse.data.name;
 				this.email = accountResponse.data.email;
 				this.loggedIn = true;
 				success = true;
@@ -45,10 +47,10 @@ export const useAccountData = defineStore('account', {
 		async checkLoginStatus() {
 			let success = false;
 			try {
-				const profileResponse = await axios.get<ProfileData>('/api/profile');
-				this.id = profileResponse.data.id;
-				this.name = profileResponse.data.username;
-				this.email = profileResponse.data.email;
+				const accountResponse = await axios.get<AccountData>('/api/me');
+				this.id = accountResponse.data.id;
+				this.name = accountResponse.data.name;
+				this.email = accountResponse.data.email;
 				this.loggedIn = true;
 				success = true;
 			} catch (error) {

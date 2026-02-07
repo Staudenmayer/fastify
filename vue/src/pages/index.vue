@@ -1,6 +1,12 @@
 <template>
-	<v-card variant="tonal">
-		<highcharts :options="chartOptions" />
+	<v-card
+		variant="tonal"
+		class="h-100"
+	>
+		<highcharts
+			class="h-100"
+			:options="chartOptions"
+		/>
 	</v-card>
 </template>
 
