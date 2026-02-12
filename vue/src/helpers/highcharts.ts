@@ -7,7 +7,6 @@ export function applyHighchartsVuetifyTheme(current: ThemeDefinition) {
 		return;
 	}
 	const colors = theme.colors;
-	console.log(theme, colors)
 
 	const primary = colors.primary;
 	const surface = colors.surface;
