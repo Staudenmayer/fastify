@@ -7,17 +7,19 @@ export function applyHighchartsVuetifyTheme(current: ThemeDefinition) {
 		return;
 	}
 	const colors = theme.colors;
+	console.log(theme, colors)
 
 	const primary = colors.primary;
-	const surface = colors.background;
+	const surface = colors.surface;
 	const onSurface = colors['surface-variant'];
 	const border = colors['on-surface-variant'];
 
 	const chartOptions = {
 		chart: {
-			backgroundColor: surface,
-			plotBackgroundColor: surface,
-			plotBorderColor: border,
+			backgroundColor: undefined,
+			plotBackgroundColor: undefined,
+			plotBorderColor: undefined,
+			plotShadow: undefined,
 			style: {
 				fontFamily: 'Roboto, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 			},
@@ -41,7 +43,7 @@ export function applyHighchartsVuetifyTheme(current: ThemeDefinition) {
 			labels: { style: { color: onSurface } },
 		},
 		yAxis: {
-			gridLineColor: border,
+			gridLineColor: colors['surface-light'],
 			labels: { style: { color: onSurface } },
 			title: { style: { color: onSurface } },
 		},

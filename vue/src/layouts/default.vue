@@ -1,12 +1,5 @@
 <template>
 	<v-app>
-		<!-- App Bar -->
-		<v-btn
-			:icon="current.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-			size="x-large"
-			variant="text"
-			@click="toggleTheme"
-		/>
 		<v-app-bar
 			app
 			density="compact"
@@ -20,6 +13,12 @@
 			<v-btn icon>
 				<v-icon>mdi-bell</v-icon>
 			</v-btn>
+			<v-btn
+				:icon="current.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+				size="x-large"
+				variant="text"
+				@click="toggleTheme"
+			/>
 
 			<Avatar />
 			<div class="pr-7" />
@@ -48,7 +47,7 @@
 		</v-navigation-drawer>
 
 		<!-- Scrollable Main Content -->
-		<v-main class="main-scroll pt-0 px-2">
+		<v-main class="main-scroll px-2">
 			<v-container
 				fluid
 				style="height: 100%"
@@ -58,7 +57,7 @@
 		</v-main>
 
 		<!-- Footer -->
-		<AppFooter />
+		<!--<AppFooter />-->
 	</v-app>
 </template>
 
@@ -80,7 +79,7 @@ const navItems = [
 
 <style scoped>
 .main-scroll {
-	height: calc(100vh - 64px); /* App-bar height */
+	height: 100vh;
 	overflow-y: auto;
 }
 </style>

@@ -1,28 +1,101 @@
 <template>
-	<v-card
-		variant="tonal"
-		class="h-100"
+	<v-container
+		fluid
+		class="pa-4"
 	>
-		<highcharts
-			class="h-100"
-			:options="chartOptions"
-		/>
-	</v-card>
+		<!-- Stats Row -->
+		<v-row>
+			<v-col
+				v-for="stat in stats"
+				:key="stat.title"
+				cols="12"
+				sm="6"
+				md="4"
+				lg="3"
+			>
+				<v-card
+					class="pa-4 stat-card elevation-4"
+					rounded="lg"
+				>
+					<v-card-title class="headline mb-2">
+						{{ stat.title }}
+					</v-card-title>
+					<v-card-text class="text-h2 font-weight-bold text-primary">
+						{{ stat.value }}
+					</v-card-text>
+					<v-card-subtitle class="text-caption text--secondary"> {{ stat.change }} from last month </v-card-subtitle>
+				</v-card>
+			</v-col>
+		</v-row>
+
+		<!-- Charts Row -->
+		<v-row class="mt-6">
+			<v-col
+				cols="12"
+				md="6"
+				lg="8"
+			>
+				<v-card
+					class="pa-6 elevation-4"
+					rounded="lg"
+				>
+					<v-card-title> Sales Overview </v-card-title>
+					<v-card-text class="text-h2 font-weight-bold text-primary pt-6">
+						<Highcharts :options="chartOptions" />
+					</v-card-text>
+				</v-card>
+			</v-col>
+			<v-col
+				cols="12"
+				md="6"
+				lg="4"
+			>
+				<v-card
+					class="pa-6 elevation-4 mb-6 mb-md-0"
+					rounded="lg"
+				>
+					<v-card-title>User Growth</v-card-title>
+					<v-card-text class="text-h2 font-weight-bold text-primary pt-6">
+						<Highcharts :options="pieChartOptions" />
+					</v-card-text>
+				</v-card>
+			</v-col>
+		</v-row>
+	</v-container>
 </template>
 
 <script lang="ts" setup>
-import { setThemeWatcher } from '@/helpers/highcharts';
+const stats = reactive([
+	{
+		title: 'Total Revenue',
+		value: '$45,230',
+		change: '+12.5%',
+	},
+	{
+		title: 'Active Users',
+		value: '12,450',
+		change: '+8.3%',
+	},
+	{
+		title: 'Orders Today',
+		value: '1,234',
+		change: '+3.2%',
+	},
+	{
+		title: 'Conversion Rate',
+		value: '4.7%',
+		change: '+0.8%',
+	},
+]);
 
-setThemeWatcher();
-
-const chartOptions = ref({
+const chartOptions = ref<Highcharts.Options>({
 	title: {
-		text: 'U.S Solar Employment Growth',
+		text: undefined,
 		align: 'left',
 	},
 
 	subtitle: {
-		text: 'By Job Category. Source: <a href="https://irecusa.org/programs/solar-jobs-census/" target="_blank">IREC</a>.',
+		text: undefined,
 		align: 'left',
 	},
 
@@ -39,9 +112,9 @@ const chartOptions = ref({
 	},
 
 	legend: {
-		layout: 'vertical',
-		align: 'right',
-		verticalAlign: 'middle',
+		layout: 'horizontal',
+		align: 'center',
+		verticalAlign: 'bottom',
 	},
 
 	plotOptions: {
@@ -78,6 +151,86 @@ const chartOptions = ref({
 		},
 	],
 
+	responsive: {
+		rules: [
+			{
+				condition: {
+					maxWidth: 500,
+				},
+				chartOptions: {
+					legend: {
+						layout: 'horizontal',
+						align: 'center',
+						verticalAlign: 'bottom',
+					},
+				},
+			},
+		],
+	},
+});
+
+const pieChartOptions = ref<Highcharts.Options>({
+	chart: {
+		type: 'pie',
+	},
+	title: {
+		text: undefined,
+	},
+	subtitle: {
+		text: undefined,
+	},
+	legend: {
+		layout: 'horizontal',
+		align: 'center',
+		verticalAlign: 'bottom',
+		itemStyle: {
+			fontSize: '12px',
+		},
+	},
+	tooltip: {
+		pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b> ({point.y})',
+	},
+	plotOptions: {
+		pie: {
+			allowPointSelect: true,
+			cursor: 'pointer',
+			dataLabels: {
+				enabled: true,
+				format: '{point.name}: {point.percentage:.1f}%',
+				style: {
+					fontWeight: 'bold',
+					textOutline: '0px',
+				},
+			},
+			showInLegend: true,
+		},
+	},
+	series: [
+		{
+			name: 'User Demographics',
+			colorByPoint: true,
+			data: [
+				{
+					name: 'Desktop Users',
+					y: 45,
+					sliced: true,
+					selected: true,
+				},
+				{
+					name: 'Mobile Users',
+					y: 35,
+				},
+				{
+					name: 'Tablet Users',
+					y: 12,
+				},
+				{
+					name: 'Other Devices',
+					y: 8,
+				},
+			],
+		},
+	],
 	responsive: {
 		rules: [
 			{

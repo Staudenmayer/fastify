@@ -11,8 +11,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AHighcharts: typeof import('./components/AHighcharts.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     Avatar: typeof import('./components/Avatar.vue')['default']
+    Highcharts: typeof import('./components/Highcharts.vue')['default']
     LoginForm: typeof import('./components/LoginForm.vue')['default']
     PasswordField: typeof import('./components/PasswordField.vue')['default']
     Profile: typeof import('./components/Profile.vue')['default']

@@ -3,14 +3,22 @@
 		<v-col
 			cols="12"
 			sm="6"
+			class="d-flex ga-5"
 		>
+			<v-btn
+				color="primary"
+				@click="addNewAccount"
+				prepend-icon="mdi-plus"
+			>
+				Add
+			</v-btn>
 			<v-btn
 				color="error"
 				:disabled="!selectedItems.length"
 				@click="deleteSelected"
 				prepend-icon="mdi-delete"
 			>
-				Delete Selected ({{ selectedItems.length }})
+				Delete ({{ selectedItems.length }})
 			</v-btn>
 		</v-col>
 		<v-col
@@ -46,20 +54,19 @@
 		:headers="listHeaders"
 		:items="items"
 		:items-per-page="10"
-		class="elevation-1 rounded-lg"
+		class="elevation-1 rounded-lg d-flex"
 		:search="search"
 		item-value="id"
-		hide-default-footer
 		show-select
 	>
 		<template #item.name="{ item }">
 			<div class="d-flex align-center">
 				<v-icon
-					:color="item.status === 'active' ? 'success' : 'grey'"
+					:color="item.status === 'online' ? 'success' : 'grey'"
 					size="small"
 					class="mr-2"
 				>
-					{{ item.status === 'active' ? 'mdi-circle' : 'mdi-circle-outline' }}
+					{{ item.status === 'online' ? 'mdi-circle' : 'mdi-circle-outline' }}
 				</v-icon>
 				<!-- Avatar with error fallback -->
 				<v-avatar
@@ -132,11 +139,11 @@
 
 					<div class="text-h6 font-weight-bold truncate-text d-flex align-center justify-center mb-2">
 						<v-icon
-							:color="item.status === 'active' ? 'success' : 'grey'"
+							:color="item.status === 'online' ? 'success' : 'grey'"
 							size="small"
 							class="mr-2"
 						>
-							{{ item.status === 'active' ? 'mdi-circle' : 'mdi-circle-outline' }}
+							{{ item.status === 'online' ? 'mdi-circle' : 'mdi-circle-outline' }}
 						</v-icon>
 						<router-link
 							:to="`/item/${item.id}`"
@@ -156,60 +163,22 @@
 </template>
 
 <script setup lang="ts">
+import { useAccountListData, type Account } from '@/stores/account-list';
 import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 const viewMode = ref('list');
 const search = ref('');
-const selectedItems = ref<number[]>([]);
+const selectedItems = ref<string[]>([]);
 const router = useRouter();
 
-type Item = {
-	id: number;
-	name: string;
-	status: string;
-	description: string;
-	avatar?: string;
+interface Item extends Account {
 	avatarFailed?: boolean; // Track failed image loads
-};
+}
 
-const items = reactive<Item[]>([
-	{
-		id: 1,
-		name: 'John Doe',
-		status: 'active',
-		description: 'First item description',
-		avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-	},
-	{
-		id: 2,
-		name: 'Jane Smith',
-		status: 'inactive',
-		description: 'Second item description',
-		avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-	},
-	{
-		id: 3,
-		name: 'Bob Johnson',
-		status: 'active',
-		description: 'Third item description',
-		avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-	},
-	{
-		id: 4,
-		name: 'Alice Brown',
-		status: 'active',
-		description: 'Fourth item description',
-		avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-	},
-	{
-		id: 5,
-		name: 'Charlie Wilson',
-		status: 'inactive',
-		description: 'Fifth item description',
-		avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-	},
-]);
+const { $state, deleteAccount, addAccount } = useAccountListData();
+
+const items = reactive<Item[]>($state);
 
 type Header = {
 	key: string;
@@ -248,7 +217,7 @@ const selectedItemsMapped = computed<Item[]>(() => {
 	return items.filter((el: Item) => selectedItems.value.includes(el.id));
 });
 
-const toggleSelection = (itemId: number, value = null) => {
+const toggleSelection = (itemId: string, value = null) => {
 	const index = selectedItems.value.indexOf(itemId);
 	if (value === true || (value === null && index === -1)) {
 		selectedItems.value.push(itemId);
@@ -257,11 +226,28 @@ const toggleSelection = (itemId: number, value = null) => {
 	}
 };
 
+const addNewAccount = () => {
+	let id = '0';
+	if (items.length) {
+		const lastItem = items[items.length - 1];
+		if (!lastItem) {
+			return;
+		}
+		id = (Number.parseInt(lastItem.id) + 1).toString();
+	}
+	addAccount({
+		id: id,
+		name: `John Doe ${id}`,
+		email: `invalid${id}@nowhere.com`,
+		description: 'test',
+		status: Number.parseInt(id) % 2 === 0 ? 'online' : 'offline',
+	});
+};
+
 const deleteSelected = async () => {
 	if (!selectedItems.value.length) return;
 	selectedItems.value.forEach((id) => {
-		const index = items.findIndex((item) => item.id === id);
-		if (index > -1) items.splice(index, 1);
+		deleteAccount(id);
 	});
 	selectedItems.value = [];
 };
