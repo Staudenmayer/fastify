@@ -69,6 +69,9 @@ export const useAccountListData = defineStore('account-list', {
         console.warn(`Account with id ${account.id} already exists.`);
       }
     },
+		getAccount(id: string) {
+			return this.$state.find((account) => account.id === id);
+		}
 	},
 
 });

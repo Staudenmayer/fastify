@@ -21,7 +21,6 @@ declare module 'vue-router/auto-routes' {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
     '/account': RouteRecordInfo<'/account', '/account', Record<never, never>, Record<never, never>>,
     '/account-list': RouteRecordInfo<'/account-list', '/account-list', Record<never, never>, Record<never, never>>,
-    '/bento': RouteRecordInfo<'/bento', '/bento', Record<never, never>, Record<never, never>>,
     '/item/[id]': RouteRecordInfo<'/item/[id]', '/item/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
     '/register': RouteRecordInfo<'/register', '/register', Record<never, never>, Record<never, never>>,
@@ -48,10 +47,6 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/account-list.vue': {
       routes: '/account-list'
-      views: never
-    }
-    'src/pages/bento.vue': {
-      routes: '/bento'
       views: never
     }
     'src/pages/item/[id].vue': {

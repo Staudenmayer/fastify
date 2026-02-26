@@ -137,7 +137,7 @@
 						</v-img>
 					</v-avatar>
 
-					<div class="text-h6 font-weight-bold truncate-text d-flex align-center justify-center mb-2">
+					<div class="text-h6 font-weight-bold truncate-text d-flex align-center justify-center">
 						<v-icon
 							:color="item.status === 'online' ? 'success' : 'grey'"
 							size="small"
@@ -152,7 +152,9 @@
 							{{ item.name }}
 						</router-link>
 					</div>
-
+					<v-card-text class="d-flex align-center justify-center text-body-2 pa-0 truncate-text-description mb-2">
+						{{ item.email }}
+					</v-card-text>
 					<v-card-text class="d-flex align-center justify-center text-body-2 pa-0 truncate-text-description">
 						{{ item.description }}
 					</v-card-text>
@@ -189,6 +191,7 @@ type Header = {
 
 const listHeaders: Header[] = [
 	{ key: 'name', title: 'Name', sortable: true },
+	{ key: 'email', title: 'email', sortable: true },
 	{ key: 'description', title: 'Description', sortable: true },
 	{ key: 'actions', title: 'Actions', sortable: false, align: 'end' },
 ];

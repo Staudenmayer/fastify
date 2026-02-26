@@ -1,5 +1,8 @@
 <template>
-	<Profile variant="account" />
+	<Profile
+		variant="account"
+		:me="true"
+	/>
 </template>
 
 <script setup lang="ts">

@@ -74,7 +74,7 @@
 							/>
 
 							<!-- Password section -->
-							<template v-if="$props.variant === 'account'">
+							<template v-if="$props.variant === 'account' && !$props.account">
 								<v-divider class="my-6" />
 
 								<div class="text-subtitle-2 mb-3">Change Password</div>
@@ -109,6 +109,12 @@
 								<v-spacer />
 								<v-btn
 									color="primary"
+									@click="$router.back()"
+								>
+									Back
+								</v-btn>
+								<v-btn
+									color="primary"
 									:loading="loading"
 									type="submit"
 									@click="$router.back()"
@@ -128,18 +134,26 @@
 import { onUnmounted, ref } from 'vue';
 import { useAccountData } from '@/stores/account';
 import PasswordField from './PasswordField.vue';
+import type { Account } from '@/stores/account-list';
 const { id, email, name } = useAccountData();
 
-defineProps<{
-	variant: 'account' | 'register';
-}>();
+const props = withDefaults(
+	defineProps<{
+		account?: Account;
+		variant?: 'account' | 'register';
+	}>(),
+	{
+		account: undefined,
+		variant: 'account',
+	},
+);
 
 const loading = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const form = ref({
-	name: name,
-	email: email,
+	name: props.account?.name ?? name,
+	email: props.account?.email ?? email,
 	avatar: undefined as File | undefined,
 	currentPassword: '',
 	newPassword: '',
@@ -169,7 +183,12 @@ function onAvatarChange(event: Event) {
 
 async function saveProfile() {
 	// Basic password validation
-	if (form.value.newPassword && form.value.newPassword !== form.value.confirmPassword) {
+	if (
+		!props.account &&
+		props.variant === 'account' &&
+		form.value.newPassword &&
+		form.value.newPassword !== form.value.confirmPassword
+	) {
 		alert('Passwords do not match');
 		return;
 	}
