@@ -11,6 +11,7 @@ import pinia from '../stores';
 import highcharts from './highcharts';
 import iconify from './iconify';
 import vueI18n from './vue-i18n';
+import "cesium/Build/Cesium/Widgets/widgets.css";
 
 // Plugins
 import vuetify from './vuetify';

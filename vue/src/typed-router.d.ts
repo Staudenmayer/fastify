@@ -23,6 +23,7 @@ declare module 'vue-router/auto-routes' {
     '/account-list': RouteRecordInfo<'/account-list', '/account-list', Record<never, never>, Record<never, never>>,
     '/item/[id]': RouteRecordInfo<'/item/[id]', '/item/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
+    '/map': RouteRecordInfo<'/map', '/map', Record<never, never>, Record<never, never>>,
     '/register': RouteRecordInfo<'/register', '/register', Record<never, never>, Record<never, never>>,
   }
 
@@ -55,6 +56,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/login.vue': {
       routes: '/login'
+      views: never
+    }
+    'src/pages/map.vue': {
+      routes: '/map'
       views: never
     }
     'src/pages/register.vue': {

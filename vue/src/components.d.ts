@@ -16,6 +16,7 @@ declare module 'vue' {
     Avatar: typeof import('./components/Avatar.vue')['default']
     Highcharts: typeof import('./components/Highcharts.vue')['default']
     LoginForm: typeof import('./components/LoginForm.vue')['default']
+    MapItems: typeof import('./components/MapItems.vue')['default']
     PasswordField: typeof import('./components/PasswordField.vue')['default']
     Profile: typeof import('./components/Profile.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
