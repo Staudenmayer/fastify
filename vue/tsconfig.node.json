@@ -1,7 +1,9 @@
 {
   "extends": "@tsconfig/node22/tsconfig.json",
   "include": [
+    "config.t*",
     "vite.config.*",
+    "electron.vite.config.*",
     "vitest.config.*",
     "cypress.config.*",
     "nightwatch.conf.*",

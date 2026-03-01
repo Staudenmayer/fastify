@@ -27,12 +27,13 @@ export const useAccountData = defineStore('account', {
 		name: '',
 		email: '',
 		loggedIn: false,
+		baseURL: import.meta.env.DEV ? '/api' : 'http://localhost:3031',
 	}),
 	actions: {
-		async login(accountData: LoginData) {
+		async login(accountData: Omit<LoginData, "name">) {
 			let success = false;
 			try{
-				const accountResponse = await axios.post<AccountData>('/api/login', accountData);
+				const accountResponse = await axios.post<AccountData>(`${this.baseURL}/login`, accountData);
 				this.id = accountResponse.data.id;
 				this.name = accountResponse.data.name;
 				this.email = accountResponse.data.email;
@@ -47,7 +48,7 @@ export const useAccountData = defineStore('account', {
 		async checkLoginStatus() {
 			let success = false;
 			try {
-				const accountResponse = await axios.get<AccountData>('/api/me');
+				const accountResponse = await axios.get<AccountData>(`${this.baseURL}/me`);
 				this.id = accountResponse.data.id;
 				this.name = accountResponse.data.name;
 				this.email = accountResponse.data.email;
@@ -64,7 +65,7 @@ export const useAccountData = defineStore('account', {
 			this.email = '';
 			this.loggedIn = false;
 			try {
-				await axios.post('/api/logout');
+				await axios.post(`${this.baseURL}/logout`);
 			} catch (error) {}
 		},
 	},

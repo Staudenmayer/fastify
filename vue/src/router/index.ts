@@ -6,13 +6,13 @@
 
 import { setupLayouts } from 'virtual:generated-layouts';
 // Composables
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
 import { usePostHog } from '@/composables/posthog';
 import { setupAuthMiddleware } from '@/middleware/global';
 
 const router = createRouter({
-	history: createWebHistory(import.meta.env.BASE_URL),
+	history: import.meta.env.DEV ? createWebHistory() : createWebHashHistory(),
 	routes: setupLayouts(routes),
 });
 

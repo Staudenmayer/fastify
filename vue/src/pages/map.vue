@@ -8,7 +8,7 @@
 
 			<div
 				class="position-absolute top-0 left-0 ma-4"
-				style="z-index: 10; width: 30rem; max-height: calc(100vh - 8rem)"
+				style="z-index: 10; width: 20dvw; max-height: calc(100vh - 8rem)"
 			>
 				<v-card
 					v-if="isMapItemsVisible"
@@ -41,7 +41,7 @@
 			<v-card
 				v-if="selectedCameraInfo"
 				class="position-absolute right-0 top-0 ma-4"
-				style="z-index: 11; width: 24rem"
+				style="z-index: 11; width: 20dvw"
 			>
 				<v-card-title class="d-flex align-center justify-space-between">
 					<span class="text-truncate">{{ selectedCameraInfo.title || selectedCameraInfo.name }}</span>
