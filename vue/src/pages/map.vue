@@ -1,72 +1,99 @@
 <template>
-	<!--
-		<v-row
-			class="pa-2"
-			align="center"
-		>
-			<v-col
-				cols="12"
-				sm="4"
-				md="3"
+	<v-card class="h-100 pa-0 overflow-hidden">
+		<div class="map-stage position-relative w-100 h-100">
+			<div
+				ref="cesiumContainer"
+				class="cesium-container w-100 h-100"
+			></div>
+
+			<div
+				class="position-absolute top-0 left-0 ma-4"
+				style="z-index: 10; width: 30rem; max-height: calc(100vh - 8rem)"
 			>
-				<v-select
-					v-model="selectedLayer"
-					:items="layers"
-					item-value="value"
-					item-title="label"
-					label="Select Google Maps Layer"
-					dense
-				></v-select>
-			</v-col>
-			<v-col>
-				<v-btn @click="resetToNorthUp">Reset</v-btn>
-			</v-col>
-		</v-row>
-
-
-	</v-container>
--->
-	<v-card class="pa-5 h-100">
-		<v-row class="h-100">
-			<v-col cols="2">
-				<div class="d-flex flex-column ga-5">
-					<v-btn
-						@click="resetToNorthUp"
-						color="primary"
-						block
-						>Reset Rotation</v-btn
-					>
-					<v-select
-						v-model="selectedLayer"
-						:items="layers"
-						item-value="value"
-						item-title="label"
-						label="Select Google Maps Layer"
-						dense
-					></v-select>
-				</div>
-			</v-col>
-			<v-col cols="8">
-				<v-card class="rounded-lg">
-					<div
-						ref="cesiumContainer"
-						class=""
-					></div>
+				<v-card
+					v-if="isMapItemsVisible"
+					class="position-relative bg-surface pa-5 d-flex flex-column"
+					style="max-height: inherit"
+				>
+					<map-items
+						:layers="layers"
+						:selected-layer="selectedLayer"
+						:webcams-enabled="areWebcamsEnabled"
+						:camera-items="mapViewCameras"
+						@close="isMapItemsVisible = false"
+						@update:selected-layer="selectedLayer = $event"
+						@update:webcams-enabled="areWebcamsEnabled = $event"
+						@click:reset-position="resetToNorthUp"
+						@click:focus-camera="focusCameraFromList"
+					></map-items>
 				</v-card>
-			</v-col>
-			<v-col cols="2">
-				<map-items></map-items>
-			</v-col>
-		</v-row>
+				<v-btn
+					v-else
+					icon="mdi-chevron-right"
+					variant="elevated"
+					size="large"
+					class="rounded-lg pa-2 ma-5"
+					color="primary"
+					@click="isMapItemsVisible = true"
+				></v-btn>
+			</div>
+
+			<v-card
+				v-if="selectedCameraInfo"
+				class="position-absolute right-0 top-0 ma-4"
+				style="z-index: 11; width: 24rem"
+			>
+				<v-card-title class="d-flex align-center justify-space-between">
+					<span class="text-truncate">{{ selectedCameraInfo.title || selectedCameraInfo.name }}</span>
+					<div class="d-flex ga-1">
+						<v-btn
+							icon="mdi-crosshairs-gps"
+							variant="text"
+							size="small"
+							@click="focusSelectedCamera"
+						/>
+						<v-btn
+							icon="mdi-close"
+							variant="text"
+							size="small"
+							@click="closeSelectedCameraCard"
+						/>
+					</div>
+				</v-card-title>
+				<v-card-text>
+					<div>Webcam ID: {{ selectedCameraInfo.webcamId }}</div>
+					<div>{{ selectedCameraInfo.location?.city }}, {{ selectedCameraInfo.location?.region }}</div>
+					<div>{{ selectedCameraInfo.location?.country }}</div>
+					<div>Lat: {{ selectedCameraInfo.location?.latitude }}</div>
+					<div>Lon: {{ selectedCameraInfo.location?.longitude }}</div>
+					<div class="pt-5"></div>
+					<v-img
+						v-if="selectedCameraInfo.images?.current.preview && !selectedPlayerUrl"
+						:src="selectedPreviewUrl"
+						class="border-0 rounded"
+					></v-img>
+					<iframe
+						v-if="selectedPlayerUrl"
+						:src="selectedPlayerUrl"
+						title="Camera player"
+						class="w-100 mt-3 border-0 rounded"
+						height="220"
+						allowfullscreen
+					></iframe>
+				</v-card-text>
+			</v-card>
+		</div>
 	</v-card>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import * as Cesium from 'cesium';
 import axios from 'axios';
-import { statesAll } from '@/mockFlight';
 import MapItems from '@/components/MapItems.vue';
+import { useCameraData } from '@/stores/cameras';
+
+const cameraStore = useCameraData();
 
 //https://openskynetwork.github.io/opensky-api
 const flightAPI = axios.create({
@@ -78,16 +105,114 @@ Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
 const cesiumContainer = ref<HTMLDivElement | null>(null);
 let viewer: Cesium.Viewer | undefined;
 let currentLayer: Cesium.ImageryLayer | undefined;
+let unsubscribeMoveEnd: (() => void) | undefined;
+let unsubscribeSelectedEntityChanged: (() => void) | undefined;
+let previewRefreshTimer: ReturnType<typeof setInterval> | undefined;
+const heightOffset = 25;
+
+type CameraViewForApi = {
+	neLat: number;
+	neLon: number;
+	swLat: number;
+	swLon: number;
+	zoomLevel: number;
+};
+
+type SelectedCameraInfo = {
+	id: string;
+	name?: string;
+	webcamId?: number;
+	title?: string;
+	player?: {
+		day?: string;
+		night?: string;
+		live?: string;
+	};
+	location?: {
+		city?: string;
+		region?: string;
+		country?: string;
+		latitude?: number;
+		longitude?: number;
+	};
+	images?: {
+		current: {
+			preview: string;
+		};
+	};
+	[key: string]: unknown;
+};
+
+type ClusterCamera = {
+	webcamId?: number;
+	title?: string;
+	location?: {
+		longitude?: number;
+		latitude?: number;
+	};
+	[key: string]: unknown;
+};
+
+const cameraViewForApi = ref<CameraViewForApi | null>(null);
+const selectedCameraInfo = ref<SelectedCameraInfo | null>(null);
+const mapViewCameras = ref<ClusterCamera[]>([]);
+const previewRefreshNonce = ref(Date.now());
+const selectedPreviewUrl = computed(() => {
+	const preview = selectedCameraInfo.value?.images?.current.preview;
+	if (!preview) return undefined;
+	const separator = preview.includes('?') ? '&' : '?';
+	return `${preview}${separator}t=${previewRefreshNonce.value}`;
+});
+const selectedPlayerUrl = computed(() => {
+	const player = selectedCameraInfo.value?.player;
+	if (typeof player?.live === 'string' && player.live.length > 0) return player.live;
+	return undefined;
+});
 
 // Define available Google layers
 const layers = [
 	{ label: 'Roadmap', value: 'm' },
 	{ label: 'Satellite', value: 's' },
 	{ label: 'Hybrid', value: 'y' },
-	{ label: 'Terrain', value: 't' },
 	{ label: '3D-Satellite', value: '3d' },
 ];
 const selectedLayer = ref('3d'); // default to Roadmap
+const isMapItemsVisible = ref(true);
+const areWebcamsEnabled = ref(false);
+
+function getCameraViewForApi(): CameraViewForApi | null {
+	if (!viewer) return null;
+
+	const rectangle = viewer.camera.computeViewRectangle(viewer.scene.globe.ellipsoid);
+	if (!rectangle) return null;
+
+	const swLat = Cesium.Math.toDegrees(rectangle.south);
+	const swLon = Cesium.Math.toDegrees(rectangle.west);
+	const neLat = Cesium.Math.toDegrees(rectangle.north);
+	const neLon = Cesium.Math.toDegrees(rectangle.east);
+
+	const rawLonSpanRadians = Cesium.Math.negativePiToPi(rectangle.east - rectangle.west);
+	const lonSpanDegrees = Math.max(
+		Cesium.Math.toDegrees(rawLonSpanRadians < 0 ? rawLonSpanRadians + Cesium.Math.TWO_PI : rawLonSpanRadians),
+		0.000001,
+	);
+	const latSpanDegrees = Math.max(neLat - swLat, 0.000001);
+
+	// API zoom model:
+	// zoom 4  => max lat span 22.5°, max lon span 45°
+	// zoom +1 => span limit / 2
+	const zoomFromLat = 4 + Math.log2(22.5 / latSpanDegrees);
+	const zoomFromLon = 4 + Math.log2(45 / lonSpanDegrees);
+	const zoomLevel = Math.min(18, Math.max(4, Math.floor(Math.min(zoomFromLat, zoomFromLon))));
+
+	return {
+		neLat,
+		neLon,
+		swLat,
+		swLon,
+		zoomLevel,
+	};
+}
 
 // Function to set Google basemap
 async function setGoogleLayer(lyrs: string) {
@@ -119,6 +244,8 @@ onMounted(async () => {
 			requestVertexNormals: true,
 			requestWaterMask: true,
 		}),
+		infoBox: false,
+		selectionIndicator: false,
 		animation: false,
 		timeline: false,
 		baseLayerPicker: false,
@@ -131,6 +258,12 @@ onMounted(async () => {
 
 	await setGoogleLayer(selectedLayer.value);
 
+	cameraViewForApi.value = getCameraViewForApi();
+
+	unsubscribeMoveEnd = viewer.camera.moveEnd.addEventListener(() => {
+		cameraViewForApi.value = getCameraViewForApi();
+	});
+
 	//await getFlightStates();
 	//addPlane(-74.006, 40.7128, 12000, 90);
 	//addMovingPlane();
@@ -138,7 +271,7 @@ onMounted(async () => {
 	//viewer.scene.globe.enableLighting = true;
 	//viewer.clock.currentTime = Cesium.JulianDate.fromIso8601('2023-01-01T00:00:00');
 
-	gotoNewYork(viewer);
+	//gotoNewYork(viewer);
 });
 
 function gotoNewYork(viewer: Cesium.Viewer) {
@@ -351,12 +484,227 @@ async function getFlightStates() {
 	}
 }
 
+function removeAllMarkers() {
+	if (!viewer) return;
+	viewer.entities.removeAll();
+}
+
+async function getCameraMarkerHeights(positions: Array<{ longitude: number; latitude: number }>): Promise<number[]> {
+	if (!viewer) return positions.map(() => heightOffset);
+
+	const cartographics = positions.map(({ longitude, latitude }) =>
+		Cesium.Cartographic.fromDegrees(longitude, latitude),
+	);
+	const sampledHeights: Array<number | undefined> = new Array(cartographics.length).fill(undefined);
+
+	if (viewer.scene.sampleHeightSupported) {
+		try {
+			const sampled = await viewer.scene.sampleHeightMostDetailed(cartographics.map((c) => c.clone()));
+			sampled.forEach((result, index) => {
+				sampledHeights[index] = result?.height;
+			});
+		} catch {
+			// Fallback to terrain sampling below.
+		}
+	}
+
+	const missingSamples: Array<{ originalIndex: number; cartographic: Cesium.Cartographic }> = [];
+	for (const [index, height] of sampledHeights.entries()) {
+		if (Number.isFinite(height)) continue;
+		const cartographic = cartographics[index];
+		if (!cartographic) continue;
+		missingSamples.push({ originalIndex: index, cartographic: cartographic.clone() });
+	}
+
+	if (missingSamples.length > 0) {
+		try {
+			const terrainSamples = await Cesium.sampleTerrainMostDetailed(
+				viewer.terrainProvider,
+				missingSamples.map((sample) => sample.cartographic),
+			);
+			terrainSamples.forEach((sample, idx) => {
+				const missingSample = missingSamples[idx];
+				if (!missingSample) return;
+				sampledHeights[missingSample.originalIndex] = sample?.height;
+			});
+		} catch {
+			// Keep default height fallback.
+		}
+	}
+
+	return sampledHeights.map((height) => (Number.isFinite(height) ? (height as number) : 0) + heightOffset);
+}
+
+async function focusSelectedCamera() {
+	const selected = selectedCameraInfo.value;
+	const longitude = selected?.location?.longitude;
+	const latitude = selected?.location?.latitude;
+	if (!viewer || !selected || typeof longitude !== 'number' || typeof latitude !== 'number') return;
+
+	const [markerHeight] = await getCameraMarkerHeights([{ longitude, latitude }]);
+	const flyToHeight = (markerHeight ?? heightOffset) + heightOffset;
+
+	viewer.camera.flyTo({
+		destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, flyToHeight),
+		duration: 0.8,
+	});
+}
+
+async function focusCameraFromList(camera: ClusterCamera) {
+	if (!viewer) return;
+
+	const longitude = camera.location?.longitude;
+	const latitude = camera.location?.latitude;
+	if (typeof longitude !== 'number' || typeof latitude !== 'number') return;
+
+	const markerId = `camera-${camera.webcamId}`;
+	const entity = viewer.entities.getById(markerId);
+
+	if (entity) {
+		viewer.selectedEntity = entity;
+	} else {
+		selectedCameraInfo.value = {
+			...(camera as SelectedCameraInfo),
+			id: markerId,
+			name: camera.title,
+		};
+	}
+
+	const [markerHeight] = await getCameraMarkerHeights([{ longitude, latitude }]);
+	const flyToHeight = (markerHeight ?? heightOffset) + heightOffset;
+
+	viewer.camera.flyTo({
+		destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, flyToHeight),
+		duration: 0.8,
+	});
+}
+
+function closeSelectedCameraCard() {
+	selectedCameraInfo.value = null;
+	if (viewer) {
+		viewer.selectedEntity = undefined;
+	}
+}
+
 // Watch for changes in the selected layer
 watch(selectedLayer, async (newVal) => {
 	await setGoogleLayer(newVal);
 });
 
+watch(cameraViewForApi, async (newVal) => {
+	if (!newVal) return;
+	if (!areWebcamsEnabled.value) {
+		mapViewCameras.value = [];
+		removeAllMarkers();
+		selectedCameraInfo.value = null;
+		if (viewer) viewer.selectedEntity = undefined;
+		return;
+	}
+
+	const cameras = (await cameraStore.getMapClusters(
+		newVal.neLat,
+		newVal.swLat,
+		newVal.neLon,
+		newVal.swLon,
+		newVal.zoomLevel,
+	)) as ClusterCamera[] | null;
+	mapViewCameras.value = cameras ?? [];
+	if (!cameras || !viewer) return;
+	removeAllMarkers();
+
+	const camerasWithCoords = cameras
+		.map((camera) => ({
+			camera,
+			longitude: camera.location?.longitude,
+			latitude: camera.location?.latitude,
+		}))
+		.filter(
+			(entry): entry is { camera: (typeof cameras)[number]; longitude: number; latitude: number } =>
+				typeof entry.longitude === 'number' && typeof entry.latitude === 'number',
+		);
+
+	if (camerasWithCoords.length === 0) return;
+
+	const markerHeights = await getCameraMarkerHeights(
+		camerasWithCoords.map(({ longitude, latitude }) => ({ longitude, latitude })),
+	);
+
+	viewer.entities.suspendEvents();
+	try {
+		for (const [index, entry] of camerasWithCoords.entries()) {
+			const markerId = `camera-${entry.camera.webcamId}`;
+			const markerData = {
+				camera: entry.camera,
+			};
+
+			viewer.entities.add({
+				id: markerId,
+				name: entry.camera.title,
+				position: Cesium.Cartesian3.fromDegrees(entry.longitude, entry.latitude, markerHeights[index]),
+				point: { pixelSize: 12, color: Cesium.Color.RED },
+				properties: markerData,
+			});
+		}
+	} finally {
+		viewer.entities.resumeEvents();
+	}
+});
+
+watch(areWebcamsEnabled, (enabled) => {
+	if (enabled) {
+		cameraViewForApi.value = getCameraViewForApi();
+		return;
+	}
+
+	mapViewCameras.value = [];
+	removeAllMarkers();
+	selectedCameraInfo.value = null;
+	if (viewer) viewer.selectedEntity = undefined;
+});
+
+onMounted(() => {
+	if (!viewer) return;
+	unsubscribeSelectedEntityChanged = viewer.selectedEntityChanged.addEventListener((entity) => {
+		// Keep the current dialog open when Cesium briefly clears selection (e.g. while flying to a camera).
+		if (!entity) {
+			return;
+		}
+
+		if (!entity.id || typeof entity.id !== 'string' || !entity.id.startsWith('camera-')) {
+			selectedCameraInfo.value = null;
+			return;
+		}
+
+		selectedCameraInfo.value = {
+			...(entity.properties?.camera?.getValue?.() ?? {}),
+			id: entity.id,
+			name: entity.name,
+		};
+	});
+});
+
+watch(
+	() => selectedCameraInfo.value?.images?.current.preview,
+	(newPreview) => {
+		if (previewRefreshTimer) {
+			clearInterval(previewRefreshTimer);
+			previewRefreshTimer = undefined;
+		}
+
+		if (!newPreview) return;
+
+		previewRefreshNonce.value = Date.now();
+		previewRefreshTimer = setInterval(() => {
+			previewRefreshNonce.value = Date.now();
+		}, 10000);
+	},
+	{ immediate: true },
+);
+
 onBeforeUnmount(() => {
+	unsubscribeMoveEnd?.();
+	unsubscribeSelectedEntityChanged?.();
+	if (previewRefreshTimer) clearInterval(previewRefreshTimer);
 	if (viewer) viewer.destroy();
 });
 </script>

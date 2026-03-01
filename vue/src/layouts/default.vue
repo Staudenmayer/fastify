@@ -41,13 +41,15 @@
 					:prepend-icon="item.icon"
 					:title="item.title"
 					:to="item.to"
-					@click="drawer = false"
 				/>
 			</v-list>
 		</v-navigation-drawer>
 
 		<!-- Scrollable Main Content -->
-		<v-main class="main-scroll px-2">
+		<v-main
+			class="main-scroll px-2"
+			@click="drawer = false"
+		>
 			<v-container
 				fluid
 				style="height: 100%"
