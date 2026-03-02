@@ -1,7 +1,26 @@
-import vuetify from 'eslint-config-vuetify';
-import prettier from 'eslint-config-prettier';
+import prettier from 'eslint-config-prettier'
+import vuetify from 'eslint-config-vuetify'
 
-export default {
-	...vuetify({}), // Merges Vuetify rules
-	...prettier, // Overrides formatting rules last
+//const config = Object.assign(
+//  await vuetify(),
+//  prettier,
+//  {
+//    ingores: [
+//      'out/**',
+//      'dist/**',
+//    ],
+//  },
+//)
+const config = {
+	...vuetify(),
+	...prettier,
 };
+export default [
+	{
+		ignores: [
+			'out/**',
+			'dist/**',
+		]
+	},
+	config,
+];
