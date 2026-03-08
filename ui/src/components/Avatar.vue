@@ -70,12 +70,15 @@
 
 <script setup lang="ts">
 import { useAccountData } from '@/stores/account';
-import { ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const menu = ref(false);
-const { id, email, name, logout: accountLogout } = useAccountData();
+const accountStore = useAccountData();
+const { name, email } = storeToRefs(accountStore);
+const { logout: accountLogout } = accountStore;
 
 const items = ref([
 	{
