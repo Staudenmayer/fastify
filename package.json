@@ -3,20 +3,20 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "vue",
+    "ui",
     "api"
   ],
   "scripts": {
-    "dev": "bunx concurrently \"bun run dev:vue\" \"bun run dev:api\"",
+    "dev": "bunx concurrently \"bun run dev:ui\" \"bun run dev:api\"",
     "build": "bun run --workspaces build",
-    "dev:vue": "bun run --cwd=vue dev",
+    "dev:ui": "bun run --cwd=ui dev",
     "dev:api": "bun run --cwd=api dev",
     "format:api": "biome format . --write",
     "lint:api": "biome lint .",
     "check:api": "biome check . --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.13",
+    "@biomejs/biome": "^2.4.5",
     "concurrently": "^9.2.1"
   }
 }
