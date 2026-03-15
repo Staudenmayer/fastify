@@ -1,292 +1,169 @@
 <template>
-	<v-card class="h-full p-0 overflow-hidden">
+			<div>{{ viewedBounds }}</div>
+		<v-card class="h-full p-0 overflow-hidden">
 		<div class="map-stage relative w-full h-full">
-			<div
-				ref="cesiumContainer"
-				class="cesium-container w-full h-full"
-			></div>
-
-			<div
-				class="absolute top-0 left-0 m-4"
-				style="z-index: 10; width: 20dvw; max-height: calc(100vh - 8rem)"
-			>
-				<v-card
-					v-if="isMapItemsVisible"
-					class="relative bg-[rgb(var(--v-theme-surface))] p-5 flex flex-col"
-					style="max-height: inherit"
-				>
-					<map-items
-						:layers="layers"
-						:selected-layer="selectedLayer"
-						:webcams-enabled="areWebcamsEnabled"
-						:camera-items="mapViewCameras"
-						@close="isMapItemsVisible = false"
-						@update:selected-layer="selectedLayer = $event"
-						@update:webcams-enabled="areWebcamsEnabled = $event"
-						@click:reset-position="resetToNorthUp"
-						@click:focus-camera="focusCameraFromList"
-					></map-items>
-				</v-card>
-				<v-btn
-					v-else
-					icon="mdi-chevron-right"
-					variant="elevated"
-					size="large"
-					class="rounded-lg p-2 m-5"
-					color="primary"
-					@click="isMapItemsVisible = true"
-				></v-btn>
+			<CesiumMap
+  		  v-model:viewer="viewer"
+  		  v-model:layer="selectedLayer"
+				v-model:bounds="visibleBounds"
+  		/>
+			<div class="absolute top-0 left-0 m-4 pr-9 w-full flex justify-between items-start pointer-events-none">
+				<MapOptions v-model:layer="selectedLayer"></MapOptions>
+				<MapSearch v-model:search="search"></MapSearch>
+				<MapInfo v-model:visible="showInfo"></MapInfo>
 			</div>
-
-			<map-marker-info
-				:selected-camera-info="selectedCameraInfo"
-				:selected-preview-url="selectedPreviewUrl"
-				:selected-player-url="selectedPlayerUrl"
-				@focus="focusSelectedCamera"
-				@close="closeSelectedCameraCard"
-			/>
 		</div>
 	</v-card>
 </template>
-
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import * as Cesium from 'cesium';
-import MapItems from '@/components/MapItems.vue';
-import MapMarkerInfo from '@/components/mapMarkerInfo.vue';
-import {
-	useCameraData,
-	type CameraViewForApi,
-	type SelectedCameraInfo,
-	type ClusterCamera,
-} from '@/stores/cameras';
-import { usePlanes } from '@/stores/planes';
+import CesiumMap from '@/components/CesiumMap.vue';
+import MapOptions from '@/components/MapOptions.vue';
+import MapSearch from '@/components/MapSearch.vue';
+import MapInfo from '@/components/MapInfo.vue';
+import { ref, watch } from 'vue';
+import { getWebcams, type WindyWebcamResponse } from '@/apis/windy';
+import { useDebounceFn } from '@vueuse/core';
+import * as turf from '@turf/turf';
+import type {
+	Feature,
+	GeoJsonProperties,
+	MultiPolygon,
+	Polygon,
+} from 'geojson';
 
-const cameraStore = useCameraData();
-const planeStore = usePlanes();
+export type BBox = {
+	west: number;
+	south: number;
+	east: number;
+	north: number;
+};
 
-Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN;
+export type CellSize = {
+	width: number;
+	height: number;
+};
 
-//https://nominatim.openstreetmap.org/search?q=Eiffel%20tower&format=json
-//https://opendata.stackexchange.com/questions/15329/free-source-of-ais-data-api
+const viewer = ref<Cesium.Viewer>();
+const search = ref<string>('');
+const showInfo = ref<boolean>(false);
+const selectedLayer = ref('3d');
+const visibleBounds = ref<BBox | null>(null);
+const viewedBounds = ref<Feature<
+	Polygon | MultiPolygon,
+	GeoJsonProperties
+> | null>();
 
-const cesiumContainer = ref<HTMLDivElement | null>(null);
-let viewer: Cesium.Viewer | undefined;
-let currentLayer: Cesium.ImageryLayer | undefined;
-let unsubscribeMoveEnd: (() => void) | undefined;
-let unsubscribeSelectedEntityChanged: (() => void) | undefined;
-let previewRefreshTimer: ReturnType<typeof setInterval> | undefined;
-let heightOffset = 25;
+function getMapCellSize(bbox: BBox, chunkSize: number): CellSize {
+	const width = (bbox.east - bbox.west) / chunkSize;
+	const height = (bbox.north - bbox.south) / chunkSize;
 
-const cameraViewForApi = ref<CameraViewForApi | null>(null);
-const selectedCameraInfo = ref<SelectedCameraInfo | null>(null);
-const mapViewCameras = ref<ClusterCamera[]>([]);
-const previewRefreshNonce = ref(Date.now());
-const selectedPreviewUrl = computed(() => {
-	const preview = selectedCameraInfo.value?.images?.current.preview;
-	if (!preview) return undefined;
-	const separator = preview.includes('?') ? '&' : '?';
-	return `${preview}${separator}t=${previewRefreshNonce.value}`;
-});
-const selectedPlayerUrl = computed(() => {
-	const player = selectedCameraInfo.value?.player;
-	if (typeof player?.live === 'string' && player.live.length > 0)
-		return player.live;
-	return undefined;
-});
-
-// Define available Google layers
-const layers = [
-	{ label: 'Roadmap', value: 'm' },
-	{ label: 'Satellite', value: 's' },
-	{ label: 'Hybrid', value: 'y' },
-	{ label: '3D-Satellite', value: '3d' },
-];
-const selectedLayer = ref('3d'); // default to Roadmap
-const isMapItemsVisible = ref(true);
-const areWebcamsEnabled = ref(false);
-
-function getCameraViewForApi(): CameraViewForApi | null {
-	return cameraStore.getCameraViewForApi(viewer);
+	return {
+		width,
+		height,
+	};
 }
 
-// Function to set Google basemap
-async function setGoogleLayer(lyrs: string) {
-	if (!viewer) return;
+function getMapChunks(bbox: BBox, chunkSize: number): BBox[] {
+	const cell = getMapCellSize(bbox, chunkSize);
 
-	// Remove previous layer
-	if (currentLayer) viewer.imageryLayers.remove(currentLayer);
+	const chunks: BBox[] = [];
 
-	if (lyrs === '3d') {
-		const tileset = await Cesium.createGooglePhotorealistic3DTileset();
-		viewer.scene.primitives.add(tileset);
-		return;
-	}
-	viewer.scene.primitives.removeAll();
-	const googleBasemap = new Cesium.UrlTemplateImageryProvider({
-		url: `https://mt{s}.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`,
-		subdomains: ['0', '1', '2', '3'],
-		credit: 'Google Maps',
-	});
+	for (let x = 0; x < chunkSize; x++) {
+		for (let y = 0; y < chunkSize; y++) {
+			const west = bbox.west + x * cell.width;
+			const east = west + cell.width;
 
-	currentLayer = viewer.imageryLayers.addImageryProvider(googleBasemap);
-}
+			const south = bbox.south + y * cell.height;
+			const north = south + cell.height;
 
-onMounted(async () => {
-	if (!cesiumContainer.value) return;
-
-	viewer = new Cesium.Viewer(cesiumContainer.value, {
-		infoBox: false,
-		selectionIndicator: false,
-		animation: false,
-		timeline: false,
-		baseLayerPicker: false,
-		navigationHelpButton: false,
-		homeButton: false,
-		geocoder: false,
-		sceneModePicker: false,
-		fullscreenButton: false,
-	});
-
-	await setGoogleLayer(selectedLayer.value);
-
-	cameraViewForApi.value = getCameraViewForApi();
-
-	unsubscribeMoveEnd = viewer.camera.moveEnd.addEventListener(() => {
-		cameraViewForApi.value = getCameraViewForApi();
-	});
-
-	//await getFlightStates();
-	//const plane = addPlane('test', 'Test', -74.006, 40.7128, 12000, 90);
-	//viewer.flyTo(plane!);
-
-	const start = { long: -74.006, lat: 40.7128, alt: 10000 }; // New York
-	const end = { long: -71.0589, lat: 42.3601, alt: 10000 }; // Boston
-	const current = { long: -73.0, lat: 41.5, alt: 25000 }; // mid-flight position
-	const remainingTime = 120; // seconds
-
-	//planeStore.addMovingPlaneDynamic(viewer, start, end, current, remainingTime);
-});
-
-function resetToNorthUp() {
-	if (!viewer) return;
-
-	const camera = viewer.camera;
-
-	viewer.camera.flyTo({
-		destination: camera.position,
-		orientation: {
-			heading: 0.0,
-			pitch: -Cesium.Math.PI_OVER_TWO,
-			roll: 0.0,
-		},
-		duration: 1.0,
-	});
-}
-
-async function focusSelectedCamera() {
-	await cameraStore.focusSelectedCamera(
-		viewer,
-		selectedCameraInfo.value,
-		heightOffset,
-	);
-}
-
-async function focusCameraFromList(camera: ClusterCamera) {
-	const selected = await cameraStore.focusCameraFromList(
-		viewer,
-		camera,
-		heightOffset,
-	);
-	if (selected) {
-		selectedCameraInfo.value = selected;
-	}
-}
-
-function closeSelectedCameraCard() {
-	selectedCameraInfo.value = null;
-	cameraStore.closeSelectedCameraCard(viewer);
-}
-
-async function rerenderCameras(newVal: CameraViewForApi) {
-	if (!areWebcamsEnabled.value) {
-		mapViewCameras.value = [];
-		cameraStore.removeAllCameraMarkers(viewer);
-		selectedCameraInfo.value = null;
-		cameraStore.closeSelectedCameraCard(viewer);
-		return;
+			chunks.push({
+				west,
+				south,
+				east,
+				north,
+			});
+		}
 	}
 
-	const cameras = await cameraStore.loadMapViewCameras(newVal);
-	mapViewCameras.value = cameras;
-	await cameraStore.rerenderCameraMarkers(viewer, cameras, heightOffset);
+	return chunks;
 }
 
-onMounted(() => {
-	if (!viewer) return;
-	unsubscribeSelectedEntityChanged =
-		viewer.selectedEntityChanged.addEventListener((entity) => {
-			// Keep the current dialog open when Cesium briefly clears selection (e.g. while flying to a camera).
-			if (!entity) {
-				return;
-			}
-
-			selectedCameraInfo.value =
-				cameraStore.getSelectedCameraInfoFromEntity(entity);
+async function subDivideChunks(chunkBBoxes: BBox[], size: number) {
+	const webcamsPerChunk: WindyWebcamResponse[] = [];
+	for (let i = 0; i < chunkBBoxes.length; i++) {
+		const chunk = chunkBBoxes[i]!;
+		const webcams = await getWebcams({
+			limit: 50,
+			bbox: `${chunk.north},${chunk.east},${chunk.south},${chunk.west}`,
 		});
-});
-
-onBeforeUnmount(() => {
-	viewer?.destroy();
-	unsubscribeMoveEnd?.();
-	unsubscribeSelectedEntityChanged?.();
-	if (previewRefreshTimer) clearInterval(previewRefreshTimer);
-	if (viewer) viewer.destroy();
-});
-
-// Watch for changes in the selected layer
-watch(selectedLayer, async (newVal) => {
-	await setGoogleLayer(newVal);
-});
-
-watch(cameraViewForApi, async (newVal) => {
-	if (!newVal) return;
-	await rerenderCameras(newVal);
-});
-
-watch(areWebcamsEnabled, (enabled) => {
-	if (enabled) {
-		cameraViewForApi.value = getCameraViewForApi();
-		return;
+		if (webcams.total >= 1000) {
+			const newChunkBBoxes = getMapChunks(chunk, size);
+			chunkBBoxes.splice(i, 1, ...newChunkBBoxes);
+			i--;
+			continue;
+		}
+		webcamsPerChunk.push(webcams);
 	}
+	return { bbox: chunkBBoxes, webcams: webcamsPerChunk };
+}
 
-	mapViewCameras.value = [];
-	cameraStore.removeAllCameraMarkers(viewer);
-	selectedCameraInfo.value = null;
-	cameraStore.closeSelectedCameraCard(viewer);
-});
+function drawMapChunks(chunkBBoxes: BBox[]) {
+	const colors = [
+		Cesium.Color.RED.withAlpha(0.4),
+		Cesium.Color.BLUE.withAlpha(0.4),
+		Cesium.Color.GREEN.withAlpha(0.4),
+		Cesium.Color.YELLOW.withAlpha(0.4),
+		Cesium.Color.ORANGE.withAlpha(0.4),
+		Cesium.Color.PURPLE.withAlpha(0.4),
+	];
+
+	viewer.value!.entities.removeAll();
+	for (let i = 0; i < chunkBBoxes.length; i++) {
+		const bbox = chunkBBoxes[i]!;
+		const color = colors[i % colors.length];
+
+		viewer.value!.entities.add({
+			rectangle: {
+				coordinates: Cesium.Rectangle.fromDegrees(
+					bbox.west,
+					bbox.south,
+					bbox.east,
+					bbox.north,
+				),
+				material: color,
+				//outline: true,
+				//outlineColor: Cesium.Color.WHITE,
+				height: 1000,
+			},
+		});
+	}
+}
 
 watch(
-	() => selectedCameraInfo.value?.images?.current.preview,
-	(newPreview) => {
-		if (previewRefreshTimer) {
-			clearInterval(previewRefreshTimer);
-			previewRefreshTimer = undefined;
+	visibleBounds,
+	useDebounceFn(async (bbox) => {
+		const isZoomedOut =
+			bbox &&
+			bbox.west === -180 &&
+			bbox.south === -90 &&
+			bbox.east === 180 &&
+			bbox.north === 90;
+		if (!bbox || isZoomedOut) {
+			return;
 		}
 
-		if (!newPreview) return;
+		const size = 5;
+		//const cellSide = getMapCellSize(bbox, size);
+		//console.log(cellSide);
 
-		previewRefreshNonce.value = Date.now();
-		previewRefreshTimer = setInterval(() => {
-			previewRefreshNonce.value = Date.now();
-		}, 10000);
-	},
-	{ immediate: true },
+		let chunkBBoxes = getMapChunks(bbox, size);
+		const subdivided = await subDivideChunks(chunkBBoxes, size);
+		chunkBBoxes = subdivided.bbox;
+		//const webcams = subdivided.webcams;
+		//console.log(webcams);
+
+		drawMapChunks(chunkBBoxes);
+	}, 750),
 );
 </script>
-
-<style>
-.cesium-widget-credits {
-	visibility: hidden !important;
-}
-</style>
