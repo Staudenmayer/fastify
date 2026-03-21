@@ -93,6 +93,51 @@ export type WindyWebcam = {
 	webcamId: number;
 	status: 'active' | 'inactive';
 	lastUpdatedOn: string;
+	categories?: {
+		id: string;
+		name: string;
+	};
+	images?: {
+		current: {
+			icon: string;
+			preview: string;
+			thumbnail: string;
+		};
+		daylight: {
+			icon: string;
+			preview: string;
+			thumbnail: string;
+		};
+		sizes: {
+			icon: { width: number; height: number };
+			preview: { width: number; height: number };
+			thumbnail: { width: number; height: number };
+		};
+	};
+	location?: {
+		latitude: number;
+		longitude: number;
+		city: string;
+		city_code: string;
+		region: string;
+		region_code: string;
+		country: string;
+		country_code: string;
+		continent: string;
+		continent_code: string;
+	};
+	player?: {
+		live: string;
+		day: string;
+		month: string;
+		year: string;
+		lifetime: string;
+	};
+	urls?: {
+		detail: string;
+		edit: string;
+		provider: string;
+	};
 };
 
 export type WindyWebcamRequest = {
@@ -131,8 +176,42 @@ export type WindyContinentsResponse = WindyCitiesResponse;
 export async function getWebcams(
 	payload: WindyWebcamRequest,
 ): Promise<WindyWebcamResponse> {
+	// Clone payload and convert all arrays to comma-joined strings
+	const params: Record<string, any> = {
+		...payload,
+		// Convert array fields to comma-separated strings for axios serialization
+		include: Array.isArray(payload.include)
+			? payload.include.join(',')
+			: payload.include,
+		categories: Array.isArray(payload.categories)
+			? payload.categories.join(',')
+			: payload.categories,
+		continents: Array.isArray(payload.continents)
+			? payload.continents.join(',')
+			: payload.continents,
+		countries: Array.isArray(payload.countries)
+			? payload.countries.join(',')
+			: payload.countries,
+		regions: Array.isArray(payload.regions)
+			? payload.regions.join(',')
+			: payload.regions,
+		cities: Array.isArray(payload.cities)
+			? payload.cities.join(',')
+			: payload.cities,
+		webcamIds: Array.isArray(payload.webcamIds)
+			? payload.webcamIds.join(',')
+			: payload.webcamIds,
+	};
+
+	// Remove undefined/null values to clean up the query string
+	Object.keys(params).forEach((key) => {
+		if (params[key] === undefined || params[key] === null) {
+			delete params[key];
+		}
+	});
+
 	const { data } = await windyClient.get<WindyWebcamResponse>('/webcams', {
-		params: payload,
+		params,
 	});
 
 	return data;
