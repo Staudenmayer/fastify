@@ -91,12 +91,6 @@ export default fp(
 					description: 'API with JWT authentication',
 					version: '1.0.0',
 				},
-				tags: [
-					{
-						name: 'Authentication',
-						description: 'Account Authentication',
-					},
-				],
 				components: {
 					securitySchemes: {
 						jwtCookie: {

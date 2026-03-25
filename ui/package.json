@@ -48,6 +48,7 @@
     "electron-updater": "^6.3.9",
     "highcharts": "^12.5.0",
     "highcharts-vue": "^2.0.1",
+    "keycloak-js": "^26.2.3",
     "pinia": "^3.0.4",
     "posthog-js": "^1.359.1",
     "socket.io-client": "^4.8.3",

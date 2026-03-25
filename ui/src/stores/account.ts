@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { keycloak } from '@/helper/keycloak';
+import { fastify } from '@/apis/fastify';
 
 export type LoginData = {
 	email: string;
 	name: string;
 	password: string;
-}
+};
 
 export type AccountData = {
 	id: string;
@@ -26,34 +27,23 @@ export const useAccountData = defineStore('account', {
 		id: '',
 		name: '',
 		email: '',
-		loggedIn: false,
-		baseURL: import.meta.env.DEV ? '/api' : 'http://localhost:3031',
+		loggedIn: !!keycloak.authenticated,
 	}),
 	actions: {
-		async login(accountData: Omit<LoginData, "name">) {
-			let success = false;
-			try{
-				const accountResponse = await axios.post<AccountData>(`${this.baseURL}/login`, accountData);
-				this.id = accountResponse.data.id;
-				this.name = accountResponse.data.name;
-				this.email = accountResponse.data.email;
-				this.loggedIn = true;
-				success = true;
-			}
-			catch(error){
-				this.logout();
-			}
-			return success;
-		},
-		async checkLoginStatus() {
+		async login() {
 			let success = false;
 			try {
-				const accountResponse = await axios.get<AccountData>(`${this.baseURL}/me`);
-				this.id = accountResponse.data.id;
-				this.name = accountResponse.data.name;
-				this.email = accountResponse.data.email;
-				this.loggedIn = true;
-				success = true;
+				if (!this.loggedIn) {
+					await keycloak?.login();
+				}
+				if (keycloak?.tokenParsed) {
+					this.name = keycloak.tokenParsed.name;
+					this.email = keycloak.tokenParsed.email;
+					this.id = keycloak.tokenParsed.sub!;
+				}
+				await fastify.get('/me');
+				this.loggedIn = !!keycloak?.authenticated;
+				success = this.loggedIn;
 			} catch (error) {
 				this.logout();
 			}
@@ -65,7 +55,7 @@ export const useAccountData = defineStore('account', {
 			this.email = '';
 			this.loggedIn = false;
 			try {
-				await axios.post(`${this.baseURL}/logout`);
+				keycloak?.logout();
 			} catch (error) {}
 		},
 	},

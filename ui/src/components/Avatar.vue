@@ -78,7 +78,7 @@ const router = useRouter();
 const menu = ref(false);
 const accountStore = useAccountData();
 const { name, email } = storeToRefs(accountStore);
-const { logout: accountLogout } = accountStore;
+const account = accountStore;
 
 const items = ref([
 	{
@@ -103,12 +103,12 @@ function getTextColor(color: string) {
 
 async function logout() {
 	menu.value = false;
-	await accountLogout();
+	await account.logout();
 	router.push('/login');
 }
 
-function handleAccount() {
+async function handleAccount() {
 	menu.value = false;
-	router.push('/account');
+	await account.keycloak?.accountManagement();
 }
 </script>

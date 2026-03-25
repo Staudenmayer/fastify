@@ -1,121 +1,156 @@
-import bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { v4 as uuidv4 } from 'uuid';
-import type LoginBody from '../types/LoginBody.ts';
 import type Account from '../types/Account.ts';
+import { keycloak } from '../helpers/keycloak.ts';
+import type { paths } from '../types/keycloak';
+import type { FastifyRedis } from '@fastify/redis';
+import type { MongoClient } from 'mongodb';
+type GetUsersResponse =
+	paths['/admin/realms/{realm}/users']['get']['responses']['200']['content']['application/json'];
+
+type GetUserResponse =
+	paths['/admin/realms/{realm}/users/{user-id}']['get']['responses']['200']['content']['application/json'];
 
 dayjs.extend(utc);
 
-const saltRounds = Number.parseInt(process.env.SALT_ROUNDS || '12', 10);
-const cookieName = process.env.COOKIE_NAME || 'auth-token';
-
-export async function registerAccount(
-	request: FastifyRequest<{ Body: LoginBody }>,
-	reply: FastifyReply,
+export async function getSingleAccount(
+	id: string,
+	redis: FastifyRedis,
+	mongo: MongoClient,
 ) {
-	const { name, email, password } = request.body;
-	const userCol = request.mongo.client
-		.db('auth')
-		.collection<Partial<Account>>('users');
+	const cacheKey = `user:${id}`;
+	const ttlSeconds = 300;
 
-	const existingUser = await userCol.findOne({ email });
-	if (existingUser) {
-		return reply.badRequest('Account already exists');
+	try {
+		const cachedUser = await redis.get(cacheKey);
+		if (cachedUser) {
+			return JSON.parse(cachedUser);
+		}
+		const response = await keycloak.get<GetUserResponse>(
+			`/admin/realms/${process.env.KEYCLOAK_REALM}/users/${id}`,
+		);
+		const userCol = mongo.db('auth').collection<Account>('users');
+		const existingUser = await userCol.findOneAndUpdate(
+			{ _id: id },
+			{
+				$setOnInsert: {
+					createdAt: dayjs.utc().unix(),
+				},
+			},
+			{
+				upsert: true,
+				returnDocument: 'after',
+			},
+		);
+		if (!existingUser) {
+			throw new Error('This account does not exist!');
+		}
+
+		/*
+		const roles = await keycloak.get(
+			`/admin/realms/${process.env.KEYCLOAK_REALM}/users/${request.user.sub}/role-mappings`,
+		);
+		*/
+
+		const userData = Object.assign(
+			{
+				id: id,
+				name: response.data.username,
+				firstName: response.data.firstName,
+				lastName: response.data.lastName,
+				email: response.data.email,
+				emailVerified: response.data.emailVerified,
+				enabled: response.data.enabled,
+				createdTimestamp: response.data.createdTimestamp,
+				totp: response.data.totp,
+			},
+			existingUser,
+		);
+
+		await redis.set(cacheKey, JSON.stringify(userData), 'EX', ttlSeconds);
+		return userData;
+	} catch {
+		throw new Error('an error occurred');
 	}
-
-	const hashedPassword = await bcrypt.hash(password, saltRounds);
-	const id = uuidv4();
-	const now = dayjs.utc();
-	const createdAt = now.toDate();
-
-	const result = await userCol.insertOne({
-		_id: id,
-		name,
-		email,
-		password: hashedPassword,
-		createdAt: createdAt,
-	});
-
-	const userId = result.insertedId.toString();
-	const token = await reply.jwtSign({ id: userId, name, email });
-
-	return reply
-		.setCookie(cookieName, token, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
-			path: '/',
-			maxAge: 60 * 60 * 24 * 7, // 7 days
-		})
-		.send({
-			id: userId,
-			name,
-			email,
-			createdAt,
-		});
-}
-
-export async function loginAccount(
-	request: FastifyRequest<{ Body: LoginBody }>,
-	reply: FastifyReply,
-) {
-	const { email, password } = request.body;
-
-	const users = request.mongo.client.db('auth').collection<Account>('users');
-	const user = await users.findOne({ email });
-
-	if (
-		!user ||
-		!(await bcrypt.compare(password, user.password)) ||
-		user.email !== email
-	) {
-		return reply.unauthorized('Invalid credentials');
-	}
-	const token = await reply.jwtSign({
-		id: user._id.toString(),
-		email: email,
-		name: user.name,
-	});
-
-	return reply
-		.setCookie(cookieName, token, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
-			path: '/',
-			maxAge: 60 * 60 * 24 * 7,
-		})
-		.send({
-			id: user._id.toString(),
-			name: user.name,
-			email,
-			createdAt: user.createdAt,
-		});
 }
 
 export async function getAccount(request: FastifyRequest, reply: FastifyReply) {
-	const userCol = request.mongo.client
-		.db('auth')
-		.collection<Partial<Account>>('users');
-	const existingUser = await userCol.findOne({ _id: request.user.id });
-	if (!existingUser) {
-		return reply.notFound('This account does not exist!');
-	}
+	const { redis, mongo } = request;
 
-	//request.logger.info('Test')
-	return reply.send({
-		id: request.user.id,
-		name: request.user.name,
-		email: request.user.email,
-		createdAt: existingUser.createdAt,
-	});
+	try {
+		const userData = await getSingleAccount(
+			request.user.sub,
+			redis,
+			mongo.client,
+		);
+		return reply.send(userData);
+	} catch (error) {
+		if (error instanceof Error) {
+			return reply.badRequest(error.message);
+		}
+		return reply.badRequest('an error occurred');
+	}
 }
 
-export async function loggoutAccount(
-	_request: FastifyRequest,
+export async function getAccountList(
+	request: FastifyRequest,
 	reply: FastifyReply,
 ) {
-	return reply.clearCookie(cookieName).code(204).send();
+	try {
+		const response = await keycloak.get<GetUsersResponse>(
+			`/admin/realms/${process.env.KEYCLOAK_REALM}/users`,
+		);
+
+		const accounts = response.data.map((el) => {
+			return {
+				id: el.id,
+				name: el.username,
+				firstName: el.firstName,
+				lastName: el.lastName,
+				email: el.email,
+				emailVerified: el.emailVerified,
+				enabled: el.enabled,
+				createdTimestamp: el.createdTimestamp,
+				totp: el.totp,
+			};
+		});
+		const userCol = request.mongo.client
+			.db('auth')
+			.collection<Account>('users');
+		const now = dayjs.utc().unix();
+
+		const operations = accounts.map((account) => ({
+			updateOne: {
+				filter: { _id: account.id },
+				update: [
+					{
+						$set: {
+							createdAt: { $ifNull: ['$createdAt', now] },
+						},
+					},
+				],
+				upsert: true,
+			},
+		}));
+
+		await userCol.bulkWrite(operations);
+		const users = await userCol
+			.find({
+				_id: { $in: accounts.map((el) => el.id!) },
+			})
+			.toArray();
+		const userMap = new Map(users.map((u) => [u._id, u]));
+
+		const merged = accounts.map((account) => {
+			const user = userMap.get(account.id!) || {};
+			return Object.assign(
+				account,
+				user, // merge user fields into account
+			);
+		});
+		return reply.send(merged);
+	} catch {
+		return reply.badRequest('an error occurred');
+	}
 }

@@ -1,48 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
-import {
-	getAccount,
-	loggoutAccount,
-	loginAccount,
-	registerAccount,
-} from '../models/auth.ts';
+import { getAccount, getAccountList } from '../models/auth.ts';
 
 async function authRoutes(app: FastifyInstance) {
-	app.post(
-		'/register',
-		{
-			schema: {
-				summary: 'Register new account',
-				description: 'Registers a new account and sets a session cookie',
-				tags: ['Authentication'],
-				body: { $ref: 'registerBody#' },
-				response: {
-					200: { $ref: 'registerResponse200#' },
-					400: { $ref: 'HttpError#' },
-				},
-			},
-		},
-		registerAccount,
-	);
-
-	app.post(
-		'/login',
-		{
-			schema: {
-				summary: 'Login to account',
-				description:
-					'Authenticates an account and sets the JWT token if credentials are valid.',
-				tags: ['Authentication'],
-				body: { $ref: 'loginBody#' },
-				response: {
-					200: { $ref: 'loginResponse200#' },
-					401: { $ref: 'HttpError#' },
-				},
-			},
-		},
-		loginAccount,
-	);
-
 	app.get(
 		'/me',
 		{
@@ -50,7 +10,7 @@ async function authRoutes(app: FastifyInstance) {
 			schema: {
 				summary: 'Get account info',
 				description: 'Get account information of the currently used account.',
-				tags: ['Authentication'],
+				tags: ['Account'],
 				security: [{ jwtCookie: [] }],
 				response: {
 					200: { $ref: 'accountResponse200#' },
@@ -62,22 +22,23 @@ async function authRoutes(app: FastifyInstance) {
 		getAccount,
 	);
 
-	app.post(
-		'/logout',
+	app.get(
+		'/accounts',
 		{
 			preValidation: [app.authenticate],
 			schema: {
-				summary: 'Logout of Account',
-				description: 'Logout of currently used Account',
-				tags: ['Authentication'],
+				summary: 'Get account list',
+				description: 'Get account list information.',
+				tags: ['Account'],
 				security: [{ jwtCookie: [] }],
 				response: {
-					204: { $ref: 'empty204#' },
-					401: { $ref: 'HttpError#' },
+					200: { type: 'array', items: { $ref: 'accountResponse200#' } },
+					401: { $ref: 'HttpError' },
+					404: { $ref: 'HttpError' },
 				},
 			},
 		},
-		loggoutAccount,
+		getAccountList,
 	);
 }
 

@@ -18,8 +18,16 @@ import 'unfonts.css';
 import './styles/tailwind.css';
 import './styles/main.scss';
 
-const app = createApp(App);
+import { keycloak } from './helper/keycloak';
+import { useAccountData } from '@/stores/account';
 
-registerPlugins(app);
+keycloak.init({ onLoad: 'login-required' }).then(() => {
+	const app = createApp(App);
 
-app.mount('#app');
+	registerPlugins(app);
+
+	app.mount('#app');
+	app.provide('keycloak', keycloak);
+	const accountStore = useAccountData();
+	accountStore.login();
+});

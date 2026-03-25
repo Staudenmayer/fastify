@@ -32,6 +32,24 @@ export default fp(
 			},
 
 			{
+				$id: 'firstName',
+				title: 'firstName',
+				type: 'string',
+				description: 'The first name of the account holder.',
+				minLength: 4,
+				example: 'John',
+			},
+
+			{
+				$id: 'lastName',
+				title: 'lastName',
+				type: 'string',
+				description: 'The last name of the account holder.',
+				minLength: 4,
+				example: 'Doe',
+			},
+
+			{
 				$id: 'accountId',
 				title: 'id',
 				type: 'string',
@@ -41,12 +59,35 @@ export default fp(
 			},
 
 			{
-				$id: 'accountCreatedAt',
-				title: 'createdAt',
-				type: 'string',
-				format: 'date-time',
-				description: 'Account creation date.',
-				example: '2026-01-13T18:29:00.000Z',
+				$id: 'accountEmailVerified',
+				title: 'emailVerified',
+				type: 'boolean',
+				description: 'Email verification state of the account.',
+				example: false,
+			},
+
+			{
+				$id: 'accountEnabled',
+				title: 'enabled',
+				type: 'boolean',
+				description: 'Account status.',
+				example: true,
+			},
+
+			{
+				$id: 'accountCreatedTimestamp',
+				title: 'createdTimestamp',
+				type: 'number',
+				description: 'Account creation timestamp.',
+				example: 1774084200938,
+			},
+
+			{
+				$id: 'accountTotp',
+				title: 'totp',
+				type: 'boolean',
+				description: 'Account status totp status.',
+				example: false,
 			},
 
 			// Base account response schema (used by all account responses)
@@ -58,60 +99,30 @@ export default fp(
 				properties: {
 					id: { $ref: 'accountId#' },
 					name: { $ref: 'name#' },
+					firstName: { $ref: 'firstName#' },
+					lastName: { $ref: 'lastName#' },
 					email: { $ref: 'email#' },
-					createdAt: { $ref: 'accountCreatedAt#' },
+					emailVerified: { $ref: 'accountEmailVerified#' },
+					enabled: { $ref: 'accountEnabled#' },
+					createdTimestamp: { $ref: 'accountCreatedTimestamp#' },
+					totp: { $ref: 'accountTotp#' },
 				},
-				required: ['id', 'name', 'email'],
-			},
-
-			// Body schemas
-			{
-				$id: 'registerBody',
-				type: 'object',
-				title: 'Register Body',
-				required: ['name', 'email', 'password'],
-				properties: {
-					name: { $ref: 'name#' },
-					email: { $ref: 'email#' },
-					password: { $ref: 'password#' },
-				},
-			},
-
-			{
-				$id: 'loginBody',
-				type: 'object',
-				title: 'Login Body',
-				required: ['email', 'password'],
-				properties: {
-					email: { $ref: 'email#' },
-					password: { $ref: 'password#' },
-				},
-			},
-
-			// Response schemas
-			{
-				$id: 'registerResponse200',
-				description:
-					'Successful registration. Returns account ID, sets session cookie.',
-				allOf: [{ $ref: 'accountBase#' }],
-			},
-
-			{
-				$id: 'loginResponse200',
-				description: 'Successful login. Returns account info.',
-				allOf: [{ $ref: 'accountBase#' }],
+				required: [
+					'id',
+					'name',
+					'email',
+					'firstName',
+					'lastName',
+					'emailVerified',
+					'createdTimestamp',
+					'totp',
+				],
 			},
 
 			{
 				$id: 'accountResponse200',
 				description: 'Account information.',
 				allOf: [{ $ref: 'accountBase#' }],
-			},
-
-			{
-				$id: 'empty204',
-				type: 'null',
-				description: 'No content',
 			},
 		];
 

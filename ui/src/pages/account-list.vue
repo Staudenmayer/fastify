@@ -70,13 +70,6 @@
 			>
 				<template #item.name="{ item }">
 					<div class="flex items-center">
-						<v-icon
-							:color="item.status === 'online' ? 'success' : 'grey'"
-							size="small"
-							class="mr-2"
-						>
-							{{ item.status === 'online' ? 'mdi-circle' : 'mdi-circle-outline' }}
-						</v-icon>
 						<!-- Avatar with error fallback -->
 						<v-avatar
 							size="32"
@@ -153,13 +146,6 @@
 							</v-avatar>
 
 							<div class="flex items-center justify-center truncate text-h6 font-bold">
-								<v-icon
-									:color="item.status === 'online' ? 'success' : 'grey'"
-									size="small"
-									class="mr-2"
-								>
-									{{ item.status === 'online' ? 'mdi-circle' : 'mdi-circle-outline' }}
-								</v-icon>
 								<router-link
 									:to="`/item/${item.id}`"
 									class="no-underline text-[rgb(var(--v-theme-on-surface))]"
@@ -195,7 +181,8 @@ interface Item extends Account {
 	avatarFailed?: boolean; // Track failed image loads
 }
 
-const { $state, deleteAccount, addAccount } = useAccountListData();
+const { $state, deleteAccount, addAccount, getAccounts } = useAccountListData();
+getAccounts();
 
 const items = reactive<Item[]>($state);
 
@@ -260,7 +247,6 @@ const addNewAccount = () => {
 		name: `John Doe ${id}`,
 		email: `invalid${id}@nowhere.com`,
 		description: 'test',
-		status: Number.parseInt(id, 10) % 2 === 0 ? 'online' : 'offline',
 	});
 };
 

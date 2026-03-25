@@ -7,45 +7,17 @@
 			variant="tonal"
 		>
 			<div class="pb-[60px] pt-8 text-center text-[6rem] font-bold">Login</div>
-			<v-form
-				class="flex flex-col gap-5"
-				@submit.prevent="handleLogin"
-			>
-				<v-text-field
-					v-model="form.email"
-					label="Email"
-					placeholder="Email"
-					prepend-inner-icon="mdi-email"
-					required
-					:rules="emailRules"
-					variant="outlined"
-				/>
-
-				<password-field v-model="form.password" />
-
-				<div class="flex justify-center">
-					<v-btn
-						block
-						color="primary"
-						:loading="loading"
-						type="submit"
-					>
-						Sign In
-					</v-btn>
-				</div>
-			</v-form>
 			<v-btn
 				class="mt-5"
 				color="primary"
-				to="/register"
-				>Register</v-btn
+				@click="login"
+				>Login</v-btn
 			>
 			<v-btn
 				class="mt-5"
 				color="primary"
-				href="https://eu.posthog.com"
-				target="_blank"
-				>Posthog</v-btn
+				@click="logout"
+				>Logout</v-btn
 			>
 		</v-card>
 	</div>
@@ -67,31 +39,6 @@ const form = reactive({
 	email: '',
 	password: '',
 });
-const showPassword = ref(false);
 const router = useRouter();
-const { login } = useAccountData();
-
-const loading = ref(false);
-
-// Form validation rules
-const emailRules = [
-	(v: string) => !!v || 'Email is required',
-	(v: string) => /.+@.+\..+/.test(v) || 'Email must be valid',
-];
-
-async function handleLogin() {
-	if (form.email && form.password) {
-		loading.value = true;
-		const loginSucceeded = await login({
-			email: form.email,
-			password: form.password,
-		});
-		if (loginSucceeded) {
-			router.push('/');
-		} else {
-			form.password = '';
-		}
-		loading.value = false;
-	}
-}
+const { login, logout } = useAccountData();
 </script>

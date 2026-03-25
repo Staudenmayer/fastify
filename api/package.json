@@ -7,7 +7,9 @@
 		"dev": "bun --watch run ./src/server.ts",
 		"build": "bun build ./src/server.ts --target=node --outdir ./dist",
 		"preview": "node ./dist/server.js",
-		"start": "bun run build && bun run preview"
+		"start": "bun run build && bun run preview",
+    "generateTypes:keycloak": "openapi-typescript ./src/openapi/keycloak.yml --output ./src/types/keycloak.d.ts",
+    "generateTypes": "bun run generateTypes:keycloak"
 	},
 	"devDependencies": {
 		"@types/bcrypt": "^6.0.0",
@@ -48,6 +50,7 @@
 		"@opentelemetry/sdk-node": "^0.208.0",
 		"@opentelemetry/winston-transport": "^0.19.0",
 		"@scalar/fastify-api-reference": "^1.40.9",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/nodemailer": "^7.0.4",
 		"axios": "^1.13.2",
 		"bcrypt": "^6.0.0",
@@ -55,7 +58,10 @@
 		"fastify": "^5.6.2",
 		"fastify-plugin": "^5.1.0",
 		"geoip-lite": "^1.4.10",
+		"jose": "^6.2.2",
+		"jsonwebtoken": "^9.0.3",
 		"mongodb": "^7.0.0",
+		"openapi-typescript": "^7.13.0",
 		"uuid": "^13.0.0",
 		"winston": "^3.19.0"
 	}

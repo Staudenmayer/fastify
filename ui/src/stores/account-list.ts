@@ -1,63 +1,17 @@
 import { defineStore } from 'pinia';
+import { fastify } from '@/apis/fastify';
 
 export type Account = {
 	id: string;
 	name: string;
 	email: string;
-	status: 'online' | 'offline';
 	description: string;
 	avatar?: string;
 	avatarFailed?: boolean;
 };
 
 export const useAccountListData = defineStore('account-list', {
-	state: (): Account[] => [
-		{
-			id: '1',
-			name: 'John Doe',
-			email: 'test@test.com',
-			status: 'online',
-			description: 'First item description',
-			avatar:
-				'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-		},
-		{
-			id: '2',
-			name: 'Jane Smith',
-			email: 'test@test.com',
-			status: 'offline',
-			description: 'Second item description',
-			avatar:
-				'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-		},
-		{
-			id: '3',
-			name: 'Bob Johnson',
-			email: 'test@test.com',
-			status: 'online',
-			description: 'Third item description',
-			avatar:
-				'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-		},
-		{
-			id: '4',
-			name: 'Alice Brown',
-			email: 'test@test.com',
-			status: 'online',
-			description: 'Fourth item description',
-			avatar:
-				'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-		},
-		{
-			id: '5',
-			name: 'Charlie Wilson',
-			email: 'test@test.com',
-			status: 'offline',
-			description: 'Fifth item description',
-			avatar:
-				'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-		},
-	],
+	state: (): Account[] => [],
 	actions: {
 		deleteAccount(id: string) {
 			const index = this.$state.findIndex((account) => account.id === id);
@@ -76,6 +30,22 @@ export const useAccountListData = defineStore('account-list', {
 		},
 		getAccount(id: string) {
 			return this.$state.find((account) => account.id === id);
+		},
+		async getAccounts() {
+			const accountsResponse = await fastify.get('/accounts');
+			const mappedAccounts = accountsResponse.data.map((el) => {
+				return {
+					id: el.id,
+					name: el.name,
+					email: el.email,
+					description: `${el.firstName} ${el.lastName}`,
+					avatar:
+						'https://avatars.githubusercontent.com/u/35968425?v=4&size=48',
+				};
+			});
+			this.$state.length = 0;
+			this.$state.push(...mappedAccounts);
+			return this.$state;
 		},
 	},
 });
