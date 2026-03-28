@@ -10,6 +10,14 @@ export type Account = {
 	avatarFailed?: boolean;
 };
 
+type ApiAccount = {
+	id: string;
+	name: string;
+	email: string;
+	firstName: string;
+	lastName: string;
+};
+
 export const useAccountListData = defineStore('account-list', {
 	state: (): Account[] => [],
 	actions: {
@@ -33,7 +41,7 @@ export const useAccountListData = defineStore('account-list', {
 		},
 		async getAccounts() {
 			const accountsResponse = await fastify.get('/accounts');
-			const mappedAccounts = accountsResponse.data.map((el) => {
+			const mappedAccounts = (accountsResponse.data as ApiAccount[]).map((el) => {
 				return {
 					id: el.id,
 					name: el.name,

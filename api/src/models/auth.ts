@@ -68,7 +68,9 @@ export async function getSingleAccount(
 			existingUser,
 		);
 
-		await redis.set(cacheKey, JSON.stringify(userData), 'EX', ttlSeconds);
+		if (userData) {
+			await redis.set(cacheKey, JSON.stringify(userData), 'EX', ttlSeconds);
+		}
 		return userData;
 	} catch {
 		throw new Error('an error occurred');

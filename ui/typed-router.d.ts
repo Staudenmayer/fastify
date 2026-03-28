@@ -65,13 +65,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/register': RouteRecordInfo<
-      '/register',
-      '/register',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
   }
 
   /**
@@ -118,12 +111,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/map.vue': {
       routes:
         | '/map'
-      views:
-        | never
-    }
-    'src/pages/register.vue': {
-      routes:
-        | '/register'
       views:
         | never
     }
